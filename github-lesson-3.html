@@ -3,197 +3,689 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GitHub Lesson 3 Notes: Access and Sharing</title>
+<title>GitHub Lesson 3: Access and Sharing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{ --navy:#14264a; --teal:#0f8b8d; --teal-soft:#d6f0ef; --yellow:#f5c518;
-  --bg:#f3f6fa; --panel:#ffffff; --ink:#14264a; --ink-soft:#4a5b7a; --line:#c9d3e3; }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{background:var(--bg);font-family:Nunito,"Segoe UI",Arial,sans-serif;color:var(--ink);
-  line-height:1.55;padding:18px 16px 40px;-webkit-text-size-adjust:100%}
-.wrap{max-width:900px;margin:0 auto}
-img,table{max-width:100%}
-.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 12px}
-.scroll table{margin:0;min-width:520px}
-pre{white-space:pre-wrap;word-wrap:break-word}
-summary{list-style:none}
-summary::-webkit-details-marker{display:none}
-summary::before{content:"+ ";color:#0f8b8d;font-weight:900}
-details[open] > summary::before{content:"- "}
-a{color:#0f8b8d}
-@media (max-width:600px){
-  body{padding:12px 10px 30px;font-size:15px}
-  .scroll table{min-width:460px;font-size:14px}
+:root{
+  --navy:#14264a; --navy-2:#1d3566; --teal:#0f8b8d; --teal-soft:#d6f0ef;
+  --yellow:#f5c518; --red:#d6453d; --green:#2e9e5b;
+  --bg:#f3f6fa; --panel:#ffffff; --ink:#14264a; --ink-soft:#4a5b7a; --line:#c9d3e3;
+  --grid-sky:#cfe7f5; --grid-ground:#3e6b3a;
+  --font:"Nunito", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", Consolas, "Courier New", monospace;
 }
-@media print{ body{background:#fff} details{page-break-inside:avoid} details > div{display:block!important} }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1730; --panel:#15254a; --ink:#eef3fb; --ink-soft:#a9b8d4; --line:#2c4273;
+    --teal-soft:#123c4a; --grid-sky:#1d3a5c; --grid-ground:#2f5a2c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1730; --panel:#15254a; --ink:#eef3fb; --ink-soft:#a9b8d4; --line:#2c4273;
+  --teal-soft:#123c4a; --grid-sky:#1d3a5c; --grid-ground:#2f5a2c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:clamp(16px,1.6vw,21px);line-height:1.5;overflow-x:hidden}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.9em}
+
+/* Top bar */
+.bar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--navy);color:#fff;display:flex;align-items:center;gap:14px;padding:0 18px;z-index:10}
+.bar .studio{font-weight:900;letter-spacing:.02em}
+.bar .studio span{color:var(--yellow)}
+.bar .where{color:#b9c7e3;font-size:.8em;margin-left:auto}
+.bar button{background:transparent;border:1px solid #3d5a92;color:#fff;border-radius:8px;padding:4px 10px;font-size:.75em}
+.progress{position:fixed;top:56px;left:0;height:5px;background:var(--yellow);transition:width .3s;z-index:10}
+
+/* Slides */
+main{padding:84px 20px 96px;max-width:1180px;margin:0 auto}
+.slide{display:none;min-height:calc(100vh - 190px)}
+.slide.active{display:block}
+h1{font-size:clamp(34px,5vw,64px);line-height:1.05;margin:.2em 0 .3em;font-weight:900}
+h2{font-size:clamp(26px,3.4vw,42px);line-height:1.1;margin:0 0 .5em;font-weight:900}
+h3{margin:0 0 .3em;font-size:1.1em}
+p{margin:.4em 0 .8em;max-width:70ch}
+.lede{font-size:1.2em;color:var(--ink-soft)}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:18px 20px}
+.row{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.btn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-weight:800}
+.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.warn{background:var(--red)}
+.note{border-left:6px solid var(--yellow);background:var(--panel);padding:10px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.hide{display:none!important}
+
+/* Teacher notes */
+.tnotes{display:none;margin-top:22px;border:2px dashed var(--teal);border-radius:12px;padding:12px 16px;font-size:.85em;color:var(--ink-soft)}
+body.teacher .tnotes{display:block}
+.tnotes b{color:var(--teal)}
+
+/* Nav */
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:2px solid var(--line);display:flex;align-items:center;justify-content:center;gap:12px;padding:10px;z-index:10}
+.nav .count{font-family:var(--mono);min-width:70px;text-align:center;color:var(--ink-soft)}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dots button{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);background:transparent;padding:0}
+.dots button.on{background:var(--teal);border-color:var(--teal)}
+
+/* Title slide */
+.title-wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:30px;align-items:center}
+@media (max-width:800px){.title-wrap{grid-template-columns:1fr}}
+.agenda li{margin:.35em 0}
+.agenda span{font-family:var(--mono);color:var(--teal);font-weight:700;display:inline-block;min-width:4.5em}
+
+/* Git vs GitHub */
+.reveal{min-height:190px;display:flex;flex-direction:column;justify-content:space-between}
+.reveal .big{font-size:2.2em;font-weight:900}
+.reveal .answer{display:none}
+.reveal.open .answer{display:block}
+.reveal.open .ask{display:none}
+
+/* Flip cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.flip{perspective:900px;background:none;border:none;padding:0;height:170px;color:inherit;text-align:left}
+.flip .in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:16px;display:flex;flex-direction:column;justify-content:center}
+.flip .front{background:var(--navy);color:#fff;border-bottom:6px solid var(--yellow)}
+.flip .front b{font-size:1.5em}
+.flip .front small{color:#b9c7e3}
+.flip .back{background:var(--panel);border:2px solid var(--teal);transform:rotateY(180deg);font-size:.9em}
+@media (prefers-reduced-motion:reduce){.flip .in{transition:none}}
+
+/* Checklist */
+.check{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0;color:var(--ink)}
+.check .box{flex:none;width:28px;height:28px;border-radius:6px;border:3px solid var(--teal);display:grid;place-items:center;font-weight:900;color:#fff}
+.check.on{border-color:var(--teal)}
+.check.on .box{background:var(--teal)}
+.check.on .box::after{content:"\2713"}
+
+/* Timer */
+.timer{font-family:var(--mono);font-size:clamp(48px,8vw,96px);font-weight:700;color:var(--teal);line-height:1}
+.timer.low{color:var(--red)}
+
+/* Quiz */
+.q{margin-bottom:18px}
+.q .opts{display:grid;gap:8px;margin-top:6px}
+.q .opts button{text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:9px 14px;color:var(--ink)}
+.q .opts button.right{border-color:var(--green);background:#dff3e7;color:#1a5e37}
+.q .opts button.wrong{border-color:var(--red);background:#fbe1df;color:#8a241e}
+.q .why{font-size:.9em;color:var(--ink-soft);margin-top:6px}
+.score{font-weight:900;font-size:1.2em}
+/* Shared bits from Lessons 1 and 2 */
+label{font-weight:800;display:block;margin:10px 0 4px}
+.feedback{margin-top:10px;padding:10px 14px;border-radius:10px;font-weight:700}
+.feedback.ok{background:#dff3e7;color:#1a5e37}
+.feedback.warn{background:#fff3cc;color:#6b5200}
+.feedback.bad{background:#fbe1df;color:#8a241e}
+.steps{display:flex;gap:6px;margin:8px 0 14px}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--teal)}
+.practice-tag{font-size:.8em;color:var(--ink-soft)}
+.snags summary{cursor:pointer;font-weight:800;color:var(--teal)}
+.snags details{margin:6px 0}
+.snags p{margin:.3em 0 .5em}
+
+/* Sync board - the signature interaction */
+.board{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:900px){.board{grid-template-columns:1fr}}
+.cloud{grid-column:1 / -1;background:var(--navy);color:#fff;border-radius:14px;padding:14px 18px;border-bottom:6px solid var(--yellow)}
+.cloud h3{margin:0 0 6px;color:var(--yellow)}
+.cloud .log{font-family:var(--mono);font-size:.78em;display:grid;gap:3px;max-height:104px;overflow:auto}
+.cloud .log div{background:#1d3566;border-radius:6px;padding:3px 8px;display:flex;justify-content:space-between;gap:10px}
+.cloud .log small{color:#b9c7e3}
+.pc{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px 16px}
+.pc h3{margin:0 0 2px;display:flex;align-items:center;gap:8px}
+.pc .who{font-size:.75em;color:var(--ink-soft);font-weight:400}
+.pc .state{font-weight:800;margin:6px 0 8px;font-size:.85em}
+.pc .log{font-family:var(--mono);font-size:.78em;display:grid;gap:3px;max-height:104px;overflow:auto;margin-bottom:8px}
+.pc .log div{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 8px}
+.pc .log div.local{border-color:var(--yellow);border-left-width:5px}
+.pc .empty{color:var(--ink-soft);font-style:italic;font-size:.85em;margin:8px 0}
+.pc .acts{display:flex;flex-wrap:wrap;gap:8px}
+.pc .acts .btn{padding:7px 12px;font-size:.82em}
+.pc .acts .btn:disabled{opacity:.4;cursor:not-allowed}
+.dot-state{width:12px;height:12px;border-radius:50%;background:var(--line);display:inline-block}
+.dot-state.sync{background:var(--green)}
+.dot-state.ahead{background:var(--yellow)}
+.dot-state.behind{background:var(--red)}
+
+/* Permission sandbox */
+.toggles{display:flex;flex-wrap:wrap;gap:20px;margin-bottom:14px}
+.seg{display:flex;border:2px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:var(--panel);border:none;padding:8px 14px;color:var(--ink);font-weight:800;font-size:.85em}
+.seg button.on{background:var(--teal);color:#fff}
+.seg + .seg{margin-left:0}
+.seg-label{font-size:.75em;color:var(--ink-soft);font-weight:800;margin-bottom:4px}
+.perm{width:100%;border-collapse:collapse;font-size:.9em}
+.perm th{background:var(--navy);color:#fff;text-align:left;padding:8px 12px}
+.perm td{border:1px solid var(--line);padding:8px 12px}
+.perm td.v{font-weight:900;width:110px}
+.perm td.yes{background:#dff3e7;color:#1a5e37}
+.perm td.no{background:#fbe1df;color:#8a241e}
+.verdict{margin-top:12px;font-weight:800;padding:10px 14px;border-radius:10px;background:var(--teal-soft)}
 </style>
 </head>
 <body>
-<div class="wrap">
-<div style="font-family: Nunito, Segoe UI, Arial, sans-serif; color: #14264a; line-height: 1.55; max-width: 900px;">
 
-<div style="background-color: #14264a; color: #ffffff; padding: 22px 26px; border-radius: 12px; border-bottom: 6px solid #f5c518; margin-bottom: 18px;">
-  <p style="margin: 0; color: #f5c518; font-weight: bold;">Bomber Works Interactive - GitHub Lesson 3 of 5</p>
-  <h2 style="margin: 6px 0 8px 0; color: #ffffff; font-size: 30px;">Getting your code, and letting other people in</h2>
-  <p style="margin: 0 0 14px 0;">Study notes for Lesson 3: cloning, public vs private, and collaborators.</p>
-  <a href="https://rbergenstock.github.io/gameDev-lessons/github-lesson-3.html" target="_blank" rel="noopener" style="display: inline-block; background-color: #0f8b8d; color: #ffffff; padding: 10px 18px; border-radius: 8px; font-weight: bold; text-decoration: none;">Launch Lesson 3 Slideshow</a>
+<div class="bar">
+  <div class="studio">Bomber Works <span>Interactive</span></div>
+  <div class="where">GitHub Lesson 3 of 5</div>
+  <button id="teacherBtn" aria-pressed="false" title="Show teacher notes (T)">Teacher notes</button>
+  <button id="themeBtn" title="Switch light and dark">Theme</button>
 </div>
+<div class="progress" id="progress"></div>
 
-<div style="background-color: #d6f0ef; padding: 14px 20px; border-radius: 10px; margin-bottom: 18px;">
-  <p style="margin: 0 0 6px 0; font-weight: bold;">By the end of this lesson you can:</p>
-  <ul style="margin: 0; padding-left: 22px;">
-    <li>Clone a repo onto any computer you are signed in on.</li>
-    <li>Explain the difference between cloning and downloading a ZIP.</li>
-    <li>Say who can see a private repo and who can see a public one.</li>
-    <li>Invite a collaborator, and know what they can and cannot do.</li>
-  </ul>
-</div>
+<main id="deck">
 
-<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">1. Three ways to get code off GitHub</summary>
-  <div style="margin-top: 10px;">
-<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
-<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Way</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">What you get</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Can you push back?</th></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Clone</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Every file plus the whole history, connected to the repo</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Yes</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Download ZIP</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">A plain folder of files, no history, no connection</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">No</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>View on github.com</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Read the code in your browser</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">No</td></tr>
-</table></div><p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">If you plan to change the code, clone it. A ZIP is a dead end.</p>
+<!-- 1 TITLE -->
+<section class="slide" data-title="Welcome">
+  <div class="title-wrap">
+    <div>
+      <p class="lede">Studio onboarding, part 3</p>
+      <h1>Getting your code, and letting other people in</h1>
+      <p>Your game is on GitHub. Today you pull it down onto another computer, decide who can see it, and give a teammate permission to work on it.</p>
+    </div>
+    <div class="panel">
+      <h3>Today's plan (40 min)</h3>
+      <ol class="agenda" style="padding-left:1.1em;margin:0">
+        <li><span>3 min</span>Three ways to get code</li>
+        <li><span>3 min</span>How to clone</li>
+        <li><span>6 min</span>Two computers, one repo</li>
+        <li><span>3 min</span>Public or private</li>
+        <li><span>3 min</span>Who can do what</li>
+        <li><span>3 min</span>Adding a collaborator</li>
+        <li><span>12 min</span>Your turn, with a partner</li>
+        <li><span>4 min</span>Quick check and exit ticket</li>
+      </ol>
+    </div>
   </div>
-</details>
+  <div class="tnotes"><b>Teacher:</b> Arrow keys or the buttons move slides. Press T to hide these notes. Students need their repo from Lesson 2 and a partner. Have your own GitHub username on the board, since students add you as a collaborator today.</div>
+</section>
 
-<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">2. How to clone a repo</summary>
-  <div style="margin-top: 10px;">
-<ol style="padding-left: 22px;">
-<li>In GitHub Desktop, click <strong>File</strong>, then <strong>Clone repository</strong>.</li>
-<li>Stay on the <strong>GitHub.com</strong> tab. The URL tab is for pasting a link to a repo that is not in your list.</li>
-<li>Click the repo you want from the list.</li>
-<li>Next to <strong>Local Path</strong>, click <strong>Choose</strong> and pick where the folder should land. Write that location down.</li>
-<li>Click <strong>Clone</strong>.</li>
-</ol>
-<p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">A repo someone invited you to only appears in this list after you accept the invitation.</p>
+<!-- 2 HOOK -->
+<section class="slide" data-title="The problem">
+  <h2>Your game is on GitHub. Now three people need it.</h2>
+  <div class="row">
+    <div class="panel">
+      <h3>You, on a different computer</h3>
+      <p>You're in the lab instead of at home, or the computer wiped your files at logout. You need your project back, with its history.</p>
+    </div>
+    <div class="panel">
+      <h3>Your teammate</h3>
+      <p>They need to open your code, change it, and send their changes back to the same repo.</p>
+    </div>
+    <div class="panel">
+      <h3>Your teacher</h3>
+      <p>Needs to see it to grade it. Right now your repo is private, so nobody can see it but you.</p>
+    </div>
   </div>
-</details>
+  <div class="note">Those three needs have three different answers: <b>clone</b>, <b>collaborator</b>, and <b>visibility</b>. That's today.</div>
+  <div class="tnotes"><b>Ask:</b> "Right now, who can open your repo?" (Only them.) That sets up why permissions matter.</div>
+</section>
 
-<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">3. Two computers, one repo</summary>
-  <div style="margin-top: 10px;">
-<p>Each computer has its own copy. Nothing moves on its own.</p>
-<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
-<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Action</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">What it does</th></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Clone</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Brings the repo down to a computer for the first time, with all its history.</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Commit</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Saves a snapshot on that computer only.</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Push</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Sends commits up from that computer to GitHub.</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Pull</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Brings commits down from GitHub to that computer.</td></tr>
-</table></div><p>So work moves up with push and down with pull. If you committed at school and nothing shows up at home, the home computer needs to pull.</p>
-<p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">Push your work before you pull, and pull before you start working. What happens when two people change the same thing is Lesson 4.</p>
+<!-- 3 THREE WAYS -->
+<section class="slide" data-title="Three ways in">
+  <h2>Three ways to get code off GitHub</h2>
+  <p>Click each one. Only one of them lets you send changes back.</p>
+  <div class="row">
+    <button class="panel reveal" data-reveal style="text-align:left;color:inherit">
+      <span class="big">Clone</span>
+      <span class="ask">What do you get?</span>
+      <span class="answer"><b>A working copy that stays connected.</b> You get every file and the whole history, and you can commit and push back to the same repo. This is what we use.</span>
+    </button>
+    <button class="panel reveal" data-reveal style="text-align:left;color:inherit">
+      <span class="big">Download ZIP</span>
+      <span class="ask">What do you get?</span>
+      <span class="answer"><b>A plain folder, disconnected.</b> Files only, no history, no way to push back. Fine for looking at someone else's project, wrong for your own work.</span>
+    </button>
+    <button class="panel reveal" data-reveal style="text-align:left;color:inherit">
+      <span class="big">View on github.com</span>
+      <span class="ask">What do you get?</span>
+      <span class="answer"><b>Read it in the browser.</b> Good for checking a file or showing someone your code. You can't run it from there.</span>
+    </button>
   </div>
-</details>
+  <div class="note">Rule of thumb: if you plan to change the code, <b>clone it</b>. Download ZIP is a dead end.</div>
+  <div class="tnotes"><b>Say:</b> "A ZIP is a photocopy. A clone is a branch office that still reports to headquarters."</div>
+</section>
 
-<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">4. Public or private</summary>
-  <div style="margin-top: 10px;">
-<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
-<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;"></th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Private</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Public</th></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Who can find it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You and people you invite</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Anyone on the internet</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Who can clone it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You and people you invite</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Anyone</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Who can push to it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You and collaborators you invite</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You and collaborators you invite</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Good for</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Class work and anything unfinished</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Showing work to a college or employer later</td></tr>
-</table></div><p>Change it in repo <strong>Settings</strong>, then <strong>General</strong>, then scroll to the <strong>Danger Zone</strong> and <strong>Change repository visibility</strong>.</p>
-<p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">Before making anything public: no full names, no ID numbers, no passwords or keys in the code, and nothing you do not have the rights to share. Going back to private does not un-share what someone already copied.</p>
+<!-- 4 CLONE STEPPER -->
+<section class="slide" data-title="How to clone">
+  <h2>How to clone a repo</h2>
+  <div class="row">
+    <div>
+      <div class="steps" id="cSteps"></div>
+      <div class="panel">
+        <h3 id="cTitle"></h3>
+        <p id="cText"></p>
+        <p id="cTip" class="practice-tag"></p>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="btn alt" id="cPrev">Back</button>
+          <button class="btn" id="cNext">Next step</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>What a clone brings</h3>
+      <p>Every file, every commit, and the link back to GitHub.</p>
+      <p>That link is why the Push origin button works from the new computer without setting anything up.</p>
+      <p>You can only clone a repo you're allowed to see.</p>
+    </div>
   </div>
-</details>
+  <div class="tnotes"><b>Model it:</b> clone one of your own repos on the projector. Point out the Local Path, since students often lose track of where the folder landed.</div>
+</section>
 
-<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">5. Who can do what</summary>
-  <div style="margin-top: 10px;">
-<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
-<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Can they...</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Owner (you)</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Collaborator</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Anyone else, repo public</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Anyone else, repo private</th></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Open the repo page</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Clone or download it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Push commits to it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Add or remove collaborators</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Change visibility or delete it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
-</table></div><p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">A collaborator can push to your repo, which means they can change and delete your files. Only add people you actually work with.</p>
+<!-- 5 SYNC BOARD -->
+<section class="slide" data-title="Two computers">
+  <h2>Two computers, one repo</h2>
+  <p>Clone your repo onto both computers, then make changes and watch what moves. Nothing here is real, so experiment.</p>
+  <div class="board">
+    <div class="cloud">
+      <h3>GitHub: dice-game</h3>
+      <div class="state" id="ghState" style="font-size:.85em;color:#b9c7e3"></div>
+      <div class="log" id="ghLog"></div>
+    </div>
+    <div class="pc" id="pcA">
+      <h3><span class="dot-state" id="dotA"></span>Lab computer <span class="who">(you, at school)</span></h3>
+      <div class="state" id="stateA"></div>
+      <div id="logA"></div>
+      <div class="acts" id="actsA"></div>
+    </div>
+    <div class="pc" id="pcB">
+      <h3><span class="dot-state" id="dotB"></span>Home laptop <span class="who">(you, later tonight)</span></h3>
+      <div class="state" id="stateB"></div>
+      <div id="logB"></div>
+      <div class="acts" id="actsB"></div>
+    </div>
   </div>
-</details>
+  <div class="feedback hide" id="boardFb" aria-live="polite"></div>
+  <div style="margin-top:12px"><button class="btn alt" id="boardReset">Start over</button></div>
+  <div class="tnotes"><b>Run it:</b> clone both, commit on the lab computer, push, then ask "Does the home laptop have it?" (No, until it pulls.) If both sides have unpushed work, Pull is blocked here on purpose. That case is Lesson 4.</div>
+</section>
 
-<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">6. Inviting a collaborator</summary>
-  <div style="margin-top: 10px;">
-<ol style="padding-left: 22px;">
-<li>Ask for the person's exact GitHub <strong>username</strong> and read it back to them.</li>
-<li>On github.com, open your repo and click <strong>Settings</strong>.</li>
-<li>In the <strong>Access</strong> section of the sidebar, click <strong>Collaborators</strong>.</li>
-<li>Click <strong>Add people</strong>.</li>
-<li>Start typing the username and click the right person in the list of matches.</li>
-<li>Click the <strong>Add</strong> button that names the person and your repo. They show as <strong>Pending Invite</strong>.</li>
-<li>They accept from the email GitHub sends, or at <code style="font-family: JetBrains Mono, Consolas, Courier New, monospace; background-color: #d6f0ef; padding: 1px 5px; border-radius: 4px;">github.com/notifications</code>.</li>
-</ol>
-<p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">Invitations expire after 7 days. To take access away later, use <strong>Remove</strong> on the same Collaborators page.</p>
+<!-- 6 PUBLIC VS PRIVATE -->
+<section class="slide" data-title="Public or private">
+  <h2>Public or private?</h2>
+  <p>Every repo is one or the other. You choose, and you can change it later.</p>
+  <div class="row">
+    <button class="panel reveal" data-reveal style="text-align:left;color:inherit">
+      <span class="big">Private</span>
+      <span class="ask">Who can see it?</span>
+      <span class="answer"><b>You, and people you invite.</b> Nobody else can find it, open it, or clone it. This is the default, and it's what class work stays as unless your teacher says otherwise.</span>
+    </button>
+    <button class="panel reveal" data-reveal style="text-align:left;color:inherit">
+      <span class="big">Public</span>
+      <span class="ask">Who can see it?</span>
+      <span class="answer"><b>Anyone on the internet.</b> They can read and clone it, but they still can't change your copy. Public is how you show work to a college or an employer later.</span>
+    </button>
   </div>
-</details>
+  <div class="note"><b>Before you make anything public:</b> no full names, no school ID numbers, no passwords or keys in the code, and nothing you don't have the rights to share. Changing it back to private does not un-share what someone already copied.</div>
+  <div class="tnotes"><b>Where to change it:</b> repo Settings, then General, then scroll to the Danger Zone and Change repository visibility. Decide as a class before students touch it.</div>
+</section>
 
-<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">7. Troubleshooting</summary>
-  <div style="margin-top: 10px;">
-<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
-<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Problem</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Fix</th></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">I never got the invitation</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Check <code style="font-family: JetBrains Mono, Consolas, Courier New, monospace; background-color: #d6f0ef; padding: 1px 5px; border-radius: 4px;">github.com/notifications</code> or the email on your GitHub account. Make sure your partner typed your exact username.</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Their repo is not in my clone list</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You have not accepted the invitation yet. Accept it, then reopen the Clone window.</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">I already have a folder with that name</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Pick a different Local Path or rename the old folder. Two repos cannot share one folder.</td></tr>
-<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">I cannot find the Settings tab</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You only see Settings on repos you own. If the tabs are cut off, open the dropdown at the end of them.</td></tr>
-</table></div>
+<!-- 7 PERMISSION SANDBOX -->
+<section class="slide" data-title="Who can do what">
+  <h2>Who can do what?</h2>
+  <p>Set the repo, pick a person, and see what they can actually do.</p>
+  <div class="toggles">
+    <div>
+      <div class="seg-label">The repo is</div>
+      <div class="seg" id="segVis">
+        <button data-v="private" class="on">Private</button>
+        <button data-v="public">Public</button>
+      </div>
+    </div>
+    <div>
+      <div class="seg-label">The person is</div>
+      <div class="seg" id="segWho">
+        <button data-w="owner" class="on">You (owner)</button>
+        <button data-w="collab">A collaborator</button>
+        <button data-w="stranger">Anyone else</button>
+      </div>
+    </div>
   </div>
-</details>
+  <table class="perm">
+    <tr><th>Can they...</th><th>Result</th></tr>
+    <tbody id="permRows"></tbody>
+  </table>
+  <div class="verdict" id="permVerdict" aria-live="polite"></div>
+  <div class="tnotes"><b>Key line:</b> a collaborator can push to your repo. That is real trust, not a like on a post. Only add people you actually work with.</div>
+</section>
 
-<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">8. Quick check</summary>
-  <div style="margin-top: 10px;">
-<p style="margin-bottom: 4px;"><strong>1. You want to work on your game from a different computer. What do you do?</strong></p>
-<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
-  <p style="margin: 6px 0 0 0;">Clone the repo. You get every file and the history, and it stays connected so you can push back.</p>
-</details>
-<p style="margin-bottom: 4px;"><strong>2. Your repo is private. Can your teacher open it?</strong></p>
-<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
-  <p style="margin: 6px 0 0 0;">Only if you add them as a collaborator. Private means you and the people you invite.</p>
-</details>
-<p style="margin-bottom: 4px;"><strong>3. You invited your partner an hour ago and they still cannot push. Why?</strong></p>
-<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
-  <p style="margin: 6px 0 0 0;">They have not accepted the invitation yet.</p>
-</details>
-<p style="margin-bottom: 4px;"><strong>4. You pushed from the lab computer. What does your home laptop need?</strong></p>
-<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
-  <p style="margin: 6px 0 0 0;">A pull. Push sends work up, pull brings work down.</p>
-</details>
-<p style="margin-bottom: 4px;"><strong>5. Your repo is public. Can a stranger change your code?</strong></p>
-<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
-  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
-  <p style="margin: 6px 0 0 0;">No. They can read and clone it, but pushing to your repo takes a collaborator invitation from you.</p>
-</details>
-
+<!-- 8 COLLABORATOR STEPPER -->
+<section class="slide" data-title="Add a collaborator">
+  <h2>Adding a collaborator</h2>
+  <div class="row">
+    <div>
+      <div class="steps" id="kSteps"></div>
+      <div class="panel">
+        <h3 id="kTitle"></h3>
+        <p id="kText"></p>
+        <p id="kTip" class="practice-tag"></p>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="btn alt" id="kPrev">Back</button>
+          <button class="btn" id="kNext">Next step</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Two sides to it</h3>
+      <p>You send an invitation. Nothing happens until the other person <b>accepts</b> it.</p>
+      <p>Invitations expire after 7 days.</p>
+      <p>You can remove a collaborator any time in the same settings page.</p>
+    </div>
   </div>
-</details>
+  <div class="tnotes"><b>Watch for:</b> students inviting a similar username. Have them read the username back to their partner before clicking add.</div>
+</section>
 
-<div style="background-color: #14264a; color: #ffffff; padding: 18px 24px; border-radius: 12px; margin-top: 18px; border-top: 6px solid #0f8b8d;">
-  <p style="margin: 0 0 8px 0; font-weight: bold; color: #f5c518; font-size: 18px;">Before you leave</p>
-  <ul style="margin: 0 0 12px 0; padding-left: 22px;">
-    <li>Submit the link to your repo in the Canvas assignment.</li>
-    <li>Check that your partner and your teacher both show up under Settings, then Collaborators.</li>
-    <li>Sign out of GitHub Desktop if this is a shared computer.</li>
-  </ul>
-  <p style="margin: 0 0 4px 0; font-weight: bold; color: #f5c518;">Next time: Lesson 4</p>
-  <p style="margin: 0;">Two people, one repo. Pull before you work, take turns safely, and see what happens when you both edit the same file.</p>
-</div>
+<!-- 9 DO IT -->
+<section class="slide" data-title="Your turn">
+  <h2>Your turn: share with a partner</h2>
+  <div class="row">
+    <div>
+      <button class="check"><span class="box"></span><span>Trade GitHub usernames with your partner</span></button>
+      <button class="check"><span class="box"></span><span>Add your partner as a collaborator on your repo</span></button>
+      <button class="check"><span class="box"></span><span>Add your teacher as a collaborator too</span></button>
+      <button class="check"><span class="box"></span><span>Accept the invitation your partner sent you</span></button>
+      <button class="check"><span class="box"></span><span>Clone your partner's repo with GitHub Desktop</span></button>
+      <button class="check"><span class="box"></span><span>Open their History tab and read their commit messages</span></button>
+    </div>
+    <div class="panel" style="text-align:center">
+      <div class="timer" id="timer">12:00</div>
+      <div style="display:flex;gap:10px;justify-content:center;margin:12px 0">
+        <button class="btn" id="timerGo">Start</button>
+        <button class="btn alt" id="timerReset">Reset</button>
+      </div>
+      <div class="snags" style="text-align:left">
+        <details><summary>I never got the invitation</summary><p>Check github.com/notifications, or the email on your GitHub account. Make sure your partner typed your exact username.</p></details>
+        <details><summary>Their repo isn't in my clone list</summary><p>You haven't accepted the invitation yet. Accept it, then reopen the Clone window.</p></details>
+        <details><summary>I already have a folder with that name</summary><p>Pick a different Local Path, or rename the old folder. Two repos can't share one folder.</p></details>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>Do not change your partner's code today.</b> Look only. Lesson 4 is about working in the same repo without wrecking each other's work.</div>
+  <div class="tnotes"><b>Circulate:</b> check each student's Settings, then Collaborators list shows you and their partner. Anyone finished early can write a better README for their game.</div>
+</section>
 
-</div>
-</div>
+<!-- 10 QUIZ -->
+<section class="slide" data-title="Quick check">
+  <h2>Quick check</h2>
+  <div id="quiz"></div>
+  <p class="score" id="score"></p>
+  <div class="tnotes"><b>Option:</b> have students answer on whiteboards first, then click.</div>
+</section>
+
+<!-- 11 EXIT -->
+<section class="slide" data-title="Exit ticket">
+  <h2>Exit ticket</h2>
+  <div class="row">
+    <div class="panel">
+      <h3>Before you leave</h3>
+      <p>Submit the link to your repo in the Canvas assignment. Now that I'm a collaborator, the link works even though your repo is private.</p>
+      <p>Sign out of GitHub Desktop if this is a shared computer.</p>
+      <p>In one sentence: what is the difference between downloading a ZIP and cloning?</p>
+    </div>
+    <div class="panel">
+      <h3>Next time: Lesson 4</h3>
+      <p>Two people, one repo. You'll pull before you work, take turns safely, and see what happens when you both edit the same file.</p>
+    </div>
+  </div>
+  <div class="tnotes"><b>Wrap:</b> point students to the Lesson 3 notes page in Canvas. Verify the collaborator invitations before Lesson 4, since group work depends on them.</div>
+</section>
+
+</main>
+
+<nav class="nav">
+  <button class="btn alt" id="prev">Back</button>
+  <div class="dots" id="dots"></div>
+  <span class="count" id="count"></span>
+  <button class="btn" id="next">Next</button>
+</nav>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function each(sel, fn){ Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // Slides
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, dots = $('dots');
+  slides.forEach(function(s,i){
+    var b = document.createElement('button');
+    b.setAttribute('aria-label','Slide '+(i+1)+': '+s.dataset.title);
+    b.title = s.dataset.title;
+    b.onclick = function(){ go(i); };
+    dots.appendChild(b);
+  });
+  function go(i){
+    cur = Math.max(0, Math.min(slides.length-1, i));
+    slides.forEach(function(s,j){ s.classList.toggle('active', j===cur); });
+    Array.prototype.forEach.call(dots.children, function(d,j){ d.classList.toggle('on', j===cur); });
+    $('count').textContent = (cur+1)+' / '+slides.length;
+    $('progress').style.width = ((cur+1)/slides.length*100)+'%';
+    $('prev').disabled = cur===0;
+    $('next').disabled = cur===slides.length-1;
+    window.scrollTo(0,0);
+    try { sessionStorage.setItem('gh3-slide', cur); } catch(e){}
+  }
+  $('prev').onclick = function(){ go(cur-1); };
+  $('next').onclick = function(){ go(cur+1); };
+  document.addEventListener('keydown', function(e){
+    var t = e.target.tagName;
+    if (t==='INPUT' || t==='TEXTAREA') return;
+    if (e.key==='ArrowRight' || e.key==='PageDown') go(cur+1);
+    if (e.key==='ArrowLeft' || e.key==='PageUp') go(cur-1);
+    if (e.key==='t' || e.key==='T') toggleTeacher();
+  });
+  var start = 0;
+  try { start = parseInt(sessionStorage.getItem('gh3-slide'),10) || 0; } catch(e){}
+  go(start);
+
+  // Teacher notes and theme
+  function toggleTeacher(){
+    var on = document.body.classList.toggle('teacher');
+    $('teacherBtn').setAttribute('aria-pressed', on);
+    try { localStorage.setItem('gh1-teacher', on ? '1' : '0'); } catch(e){}
+  }
+  $('teacherBtn').onclick = toggleTeacher;
+  try { if (localStorage.getItem('gh1-teacher')==='1') toggleTeacher(); } catch(e){}
+  $('themeBtn').onclick = function(){
+    var root = document.documentElement;
+    var dark = root.dataset.theme ? root.dataset.theme==='dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+  };
+
+  each('[data-reveal]', function(b){ b.onclick = function(){ b.classList.toggle('open'); }; });
+  each('.check', function(b){
+    b.setAttribute('aria-pressed','false');
+    b.onclick = function(){ var on = b.classList.toggle('on'); b.setAttribute('aria-pressed', on); };
+  });
+
+  // Steppers
+  function stepper(prefix, steps){
+    var i = 0, bar = $(prefix+'Steps');
+    bar.innerHTML = steps.map(function(){ return '<i></i>'; }).join('');
+    function draw(){
+      Array.prototype.forEach.call(bar.children, function(el,k){ el.classList.toggle('on', k<=i); });
+      $(prefix+'Title').textContent = 'Step '+(i+1)+' of '+steps.length+': '+steps[i].t;
+      $(prefix+'Text').innerHTML = steps[i].x;
+      $(prefix+'Tip').textContent = steps[i].tip;
+      $(prefix+'Prev').disabled = i===0;
+      $(prefix+'Next').disabled = i===steps.length-1;
+    }
+    $(prefix+'Prev').onclick = function(){ if (i>0){ i--; draw(); } };
+    $(prefix+'Next').onclick = function(){ if (i<steps.length-1){ i++; draw(); } };
+    draw();
+  }
+  stepper('c', [
+    {t:'Open the clone window', x:'In GitHub Desktop, click <b>File</b>, then <b>Clone repository</b>.', tip:'Already signed in from Lesson 1? Then your repos are listed for you.'},
+    {t:'Pick where it lives on GitHub', x:'Stay on the <b>GitHub.com</b> tab. The <b>URL</b> tab is for pasting a link to a repo that is not in your list.', tip:'A repo you were invited to shows up here only after you accept the invitation.'},
+    {t:'Choose the repo', x:'Click the repo you want from the list, like <code>your-name/dice-game</code>.', tip:'Use the filter box at the top if the list is long.'},
+    {t:'Choose the Local Path', x:'Next to <b>Local Path</b>, click <b>Choose</b> and pick the folder on this computer where it should land.', tip:'Write down where you put it. This is where students lose their project.'},
+    {t:'Clone it', x:'Click <b>Clone</b>. Every file and the whole history come down, and the repo is ready to commit and push.', tip:'Cloning someone else\'s repo does not touch your own. They are separate repos.'}
+  ]);
+  stepper('k', [
+    {t:'Get their exact username', x:'Ask your partner for their GitHub <b>username</b>, not their real name or email nickname. Read it back to them.', tip:'Usernames are easy to mix up. One wrong letter invites a stranger.'},
+    {t:'Open your repo settings', x:'On github.com, open your repo and click <b>Settings</b>. If you don\'t see it, open the dropdown menu at the end of the tabs.', tip:'You only see Settings on repos you own.'},
+    {t:'Go to Collaborators', x:'In the <b>Access</b> section of the left sidebar, click <b>Collaborators</b>.', tip:'GitHub may ask you to confirm your password here.'},
+    {t:'Add people', x:'Click <b>Add people</b>, start typing the username, and click the right person in the list of matches.', tip:'Check the profile picture and full username before you click.'},
+    {t:'Send the invite', x:'Click the <b>Add</b> button that names the person and your repo. They show up as <b>Pending Invite</b> until they accept.', tip:'Invitations expire after 7 days.'},
+    {t:'They accept', x:'Your partner accepts from the email GitHub sends, or at <code>github.com/notifications</code>. Now they can clone, commit, and push to your repo.', tip:'To take access away later, use Remove on this same page.'}
+  ]);
+
+  // Sync board
+  var WORK = ['Add power-up','Fix jump height','Add title screen','Tune dice odds','Update README','Add sound effect','Fix off-screen bug'];
+  var board, msgIdx;
+  function freshBoard(){
+    board = {
+      gh: [{id:'3c1e0a9', m:'Initial commit'},{id:'e110e9a', m:'Add dice roller'}],
+      pcs: { A:{name:'Lab computer', has:false, log:[]}, B:{name:'Home laptop', has:false, log:[]} }
+    };
+    msgIdx = 0;
+    $('boardFb').className = 'feedback hide';
+    drawBoard();
+  }
+  function hash(){ var h=''; for (var i=0;i<7;i++) h += '0123456789abcdef'[Math.floor(Math.random()*16)]; return h; }
+  function ids(list){ return list.map(function(c){ return c.id; }); }
+  function unpushed(pc){ var g = ids(board.gh); return pc.log.filter(function(c){ return g.indexOf(c.id)<0; }); }
+  function behind(pc){ var l = ids(pc.log); return board.gh.filter(function(c){ return l.indexOf(c.id)<0; }); }
+  function sayBoard(kind, text){ var f=$('boardFb'); f.className='feedback '+kind; f.textContent=text; }
+  function drawBoard(){
+    $('ghState').textContent = board.gh.length + ' commits on GitHub';
+    $('ghLog').innerHTML = board.gh.slice().reverse().map(function(c){
+      return '<div><span>'+esc(c.m)+'</span><small>'+c.id+'</small></div>';
+    }).join('');
+    ['A','B'].forEach(function(k){
+      var pc = board.pcs[k], up = unpushed(pc).length, bh = behind(pc).length;
+      var dot = $('dot'+k), state = $('state'+k), log = $('log'+k), acts = $('acts'+k);
+      dot.className = 'dot-state' + (!pc.has ? '' : up ? ' ahead' : bh ? ' behind' : ' sync');
+      if (!pc.has){
+        state.textContent = 'No copy on this computer yet.';
+        log.innerHTML = '<p class="empty">Nothing here. Clone the repo to get every file and the whole history.</p>';
+      } else {
+        var bits = [];
+        if (up) bits.push(up+' commit'+(up===1?'':'s')+' not pushed yet');
+        if (bh) bits.push(bh+' commit'+(bh===1?'':'s')+' behind GitHub');
+        state.textContent = bits.length ? bits.join(', ') : 'Up to date with GitHub';
+        log.innerHTML = '<div class="log">' + pc.log.slice().reverse().map(function(c){
+          var isLocal = ids(board.gh).indexOf(c.id)<0;
+          return '<div class="'+(isLocal?'local':'')+'">'+esc(c.m)+(isLocal?' (not pushed)':'')+'</div>';
+        }).join('') + '</div>';
+      }
+      var html = '';
+      if (!pc.has) html += '<button class="btn" data-act="clone" data-pc="'+k+'">Clone</button>';
+      else {
+        html += '<button class="btn" data-act="edit" data-pc="'+k+'">Edit and commit</button>';
+        html += '<button class="btn" data-act="push" data-pc="'+k+'"'+(up?'':' disabled')+'>Push'+(up?' ('+up+')':'')+'</button>';
+        html += '<button class="btn alt" data-act="pull" data-pc="'+k+'"'+(bh?'':' disabled')+'>Pull'+(bh?' ('+bh+')':'')+'</button>';
+      }
+      acts.innerHTML = html;
+    });
+    each('[data-act]', function(b){ b.onclick = function(){ act(b.dataset.act, b.dataset.pc); }; });
+  }
+  function act(what, k){
+    var pc = board.pcs[k], other = board.pcs[k==='A'?'B':'A'];
+    if (what==='clone'){
+      pc.has = true; pc.log = board.gh.slice();
+      sayBoard('ok', pc.name+': cloned. It has all '+board.gh.length+' commits, not just the newest files.');
+    } else if (what==='edit'){
+      var m = WORK[msgIdx % WORK.length]; msgIdx++;
+      pc.log.push({id:hash(), m:m});
+      sayBoard('warn', pc.name+': committed "'+m+'" on this computer only. GitHub and the '+other.name.toLowerCase()+' still don\'t have it.');
+    } else if (what==='push'){
+      var up = unpushed(pc);
+      if (!up.length) return;
+      board.gh = board.gh.concat(up);
+      var otherBehind = other.has ? behind(other).length : 0;
+      sayBoard('ok', pc.name+': pushed '+up.length+' commit'+(up.length===1?'':'s')+' to GitHub.' + (other.has ? ' The '+other.name.toLowerCase()+' is now '+otherBehind+' behind, until it pulls.' : ''));
+    } else if (what==='pull'){
+      if (unpushed(pc).length){
+        sayBoard('bad', pc.name+' has its own commits that are not pushed yet. Push first. Two sides changing at once is Lesson 4.');
+        return;
+      }
+      pc.log = board.gh.slice();
+      sayBoard('ok', pc.name+': pulled. Both computers and GitHub match again.');
+    }
+    drawBoard();
+  }
+  $('boardReset').onclick = freshBoard;
+  freshBoard();
+
+  // Permission sandbox
+  var vis = 'private', who = 'owner';
+  var ROWS = [
+    {t:'Find and open the repo page', f:function(v,w){ return w==='owner' || w==='collab' || v==='public'; }},
+    {t:'Clone it or download a ZIP', f:function(v,w){ return w==='owner' || w==='collab' || v==='public'; }},
+    {t:'Push commits to it', f:function(v,w){ return w==='owner' || w==='collab'; }},
+    {t:'Add or remove collaborators', f:function(v,w){ return w==='owner'; }},
+    {t:'Change it from private to public', f:function(v,w){ return w==='owner'; }},
+    {t:'Delete the repo', f:function(v,w){ return w==='owner'; }}
+  ];
+  var VERDICT = {
+    'private-owner':'You own it. You can do everything, and you are the only one who can hand out access.',
+    'private-collab':'A collaborator you invited: they can see it and push to it, but they cannot give anyone else access or delete it.',
+    'private-stranger':'Nobody else can even find it. A private repo is invisible until you invite someone.',
+    'public-owner':'Still all yours. Making it public does not give anyone else control.',
+    'public-collab':'Same as private for them: full working access, no control over settings.',
+    'public-stranger':'Anyone can read and copy your code, but they cannot change your repo. Their copy is their own.'
+  };
+  function drawPerm(){
+    $('permRows').innerHTML = ROWS.map(function(r){
+      var ok = r.f(vis, who);
+      return '<tr><td>'+r.t+'</td><td class="v '+(ok?'yes':'no')+'">'+(ok?'Yes':'No')+'</td></tr>';
+    }).join('');
+    $('permVerdict').textContent = VERDICT[vis+'-'+who];
+  }
+  each('#segVis button', function(b){
+    b.onclick = function(){ vis=b.dataset.v; each('#segVis button', function(o){ o.classList.toggle('on', o===b); }); drawPerm(); };
+  });
+  each('#segWho button', function(b){
+    b.onclick = function(){ who=b.dataset.w; each('#segWho button', function(o){ o.classList.toggle('on', o===b); }); drawPerm(); };
+  });
+  drawPerm();
+
+  // Timer
+  var total=12*60, left=total, tick=null, tEl=$('timer'), tGo=$('timerGo');
+  function drawT(){ var m=Math.floor(left/60), s=left%60; tEl.textContent=m+':'+(s<10?'0':'')+s; tEl.classList.toggle('low', left<=120); }
+  tGo.onclick=function(){
+    if (tick){ clearInterval(tick); tick=null; tGo.textContent='Start'; return; }
+    tGo.textContent='Pause';
+    tick=setInterval(function(){ if(left>0){ left--; drawT(); } else { clearInterval(tick); tick=null; tGo.textContent='Start'; } },1000);
+  };
+  $('timerReset').onclick=function(){ if(tick){clearInterval(tick);tick=null;} left=total; tGo.textContent='Start'; drawT(); };
+  drawT();
+
+  // Quiz
+  var qs=[
+    {q:'You want to work on your game from a different computer. What do you do?', o:['Download the ZIP','Clone the repo','Email yourself the files','Make the repo public'], a:1, why:'A clone brings every file and the history, and it stays connected so you can push your work back.'},
+    {q:'Your repo is private. Can your teacher open it?', o:['Yes, teachers can see everything','Only if you add them as a collaborator','Only if you make it public','No, private means nobody'], a:1, why:'Private means you and the people you invite. A collaborator invitation is how you let someone in without going public.'},
+    {q:'You invited your partner an hour ago. They still cannot push. Why?', o:['They have not accepted the invitation yet','Private repos block pushing','They need to download a ZIP first','Invitations take a week'], a:0, why:'Nothing happens until they accept, from the email or from github.com/notifications.'},
+    {q:'You committed and pushed from the lab computer. What does your home laptop need?', o:['Another clone','A push','A pull','Nothing, it updates itself'], a:2, why:'Push sends work up. Pull brings work down. Each computer has to pull to catch up.'},
+    {q:'Your repo is public. Can a stranger change your code?', o:['Yes, public means anyone can edit','No, they can only read and copy it','Yes, but only the README','Only if they clone it'], a:1, why:'Public gives read access. Pushing to your repo still takes a collaborator invitation from you.'}
+  ];
+  var quiz=$('quiz'), right=0, answered=0;
+  qs.forEach(function(item,qi){
+    var d=document.createElement('div'); d.className='q panel';
+    d.innerHTML='<h3>'+(qi+1)+'. '+item.q+'</h3><div class="opts"></div><div class="why hide"></div>';
+    var opts=d.querySelector('.opts');
+    item.o.forEach(function(txt,oi){
+      var b=document.createElement('button'); b.textContent=txt;
+      b.onclick=function(){
+        if (d.dataset.done) return;
+        d.dataset.done='1'; answered++;
+        if (oi===item.a){ b.classList.add('right'); right++; }
+        else { b.classList.add('wrong'); opts.children[item.a].classList.add('right'); }
+        var w=d.querySelector('.why'); w.textContent=item.why; w.classList.remove('hide');
+        if (answered===qs.length) $('score').textContent='Score: '+right+' / '+qs.length;
+      };
+      opts.appendChild(b);
+    });
+    quiz.appendChild(d);
+  });
+})();
+</script>
 </body>
 </html>
