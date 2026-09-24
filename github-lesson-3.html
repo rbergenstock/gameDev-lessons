@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Lesson 3 Notes: Access and Sharing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{ --navy:#14264a; --teal:#0f8b8d; --teal-soft:#d6f0ef; --yellow:#f5c518;
+  --bg:#f3f6fa; --panel:#ffffff; --ink:#14264a; --ink-soft:#4a5b7a; --line:#c9d3e3; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);font-family:Nunito,"Segoe UI",Arial,sans-serif;color:var(--ink);
+  line-height:1.55;padding:18px 16px 40px;-webkit-text-size-adjust:100%}
+.wrap{max-width:900px;margin:0 auto}
+img,table{max-width:100%}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 12px}
+.scroll table{margin:0;min-width:520px}
+pre{white-space:pre-wrap;word-wrap:break-word}
+summary{list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+ ";color:#0f8b8d;font-weight:900}
+details[open] > summary::before{content:"- "}
+a{color:#0f8b8d}
+@media (max-width:600px){
+  body{padding:12px 10px 30px;font-size:15px}
+  .scroll table{min-width:460px;font-size:14px}
+}
+@media print{ body{background:#fff} details{page-break-inside:avoid} details > div{display:block!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div style="font-family: Nunito, Segoe UI, Arial, sans-serif; color: #14264a; line-height: 1.55; max-width: 900px;">
+
+<div style="background-color: #14264a; color: #ffffff; padding: 22px 26px; border-radius: 12px; border-bottom: 6px solid #f5c518; margin-bottom: 18px;">
+  <p style="margin: 0; color: #f5c518; font-weight: bold;">Bomber Works Interactive - GitHub Lesson 3 of 5</p>
+  <h2 style="margin: 6px 0 8px 0; color: #ffffff; font-size: 30px;">Getting your code, and letting other people in</h2>
+  <p style="margin: 0 0 14px 0;">Study notes for Lesson 3: cloning, public vs private, and collaborators.</p>
+  <a href="https://rbergenstock.github.io/gameDev-lessons/github-lesson-3.html" target="_blank" rel="noopener" style="display: inline-block; background-color: #0f8b8d; color: #ffffff; padding: 10px 18px; border-radius: 8px; font-weight: bold; text-decoration: none;">Launch Lesson 3 Slideshow</a>
+</div>
+
+<div style="background-color: #d6f0ef; padding: 14px 20px; border-radius: 10px; margin-bottom: 18px;">
+  <p style="margin: 0 0 6px 0; font-weight: bold;">By the end of this lesson you can:</p>
+  <ul style="margin: 0; padding-left: 22px;">
+    <li>Clone a repo onto any computer you are signed in on.</li>
+    <li>Explain the difference between cloning and downloading a ZIP.</li>
+    <li>Say who can see a private repo and who can see a public one.</li>
+    <li>Invite a collaborator, and know what they can and cannot do.</li>
+  </ul>
+</div>
+
+<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">1. Three ways to get code off GitHub</summary>
+  <div style="margin-top: 10px;">
+<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
+<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Way</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">What you get</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Can you push back?</th></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Clone</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Every file plus the whole history, connected to the repo</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Yes</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Download ZIP</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">A plain folder of files, no history, no connection</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">No</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>View on github.com</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Read the code in your browser</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">No</td></tr>
+</table></div><p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">If you plan to change the code, clone it. A ZIP is a dead end.</p>
+  </div>
+</details>
+
+<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">2. How to clone a repo</summary>
+  <div style="margin-top: 10px;">
+<ol style="padding-left: 22px;">
+<li>In GitHub Desktop, click <strong>File</strong>, then <strong>Clone repository</strong>.</li>
+<li>Stay on the <strong>GitHub.com</strong> tab. The URL tab is for pasting a link to a repo that is not in your list.</li>
+<li>Click the repo you want from the list.</li>
+<li>Next to <strong>Local Path</strong>, click <strong>Choose</strong> and pick where the folder should land. Write that location down.</li>
+<li>Click <strong>Clone</strong>.</li>
+</ol>
+<p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">A repo someone invited you to only appears in this list after you accept the invitation.</p>
+  </div>
+</details>
+
+<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">3. Two computers, one repo</summary>
+  <div style="margin-top: 10px;">
+<p>Each computer has its own copy. Nothing moves on its own.</p>
+<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
+<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Action</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">What it does</th></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Clone</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Brings the repo down to a computer for the first time, with all its history.</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Commit</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Saves a snapshot on that computer only.</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Push</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Sends commits up from that computer to GitHub.</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;"><strong>Pull</strong></td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Brings commits down from GitHub to that computer.</td></tr>
+</table></div><p>So work moves up with push and down with pull. If you committed at school and nothing shows up at home, the home computer needs to pull.</p>
+<p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">Push your work before you pull, and pull before you start working. What happens when two people change the same thing is Lesson 4.</p>
+  </div>
+</details>
+
+<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">4. Public or private</summary>
+  <div style="margin-top: 10px;">
+<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
+<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;"></th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Private</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Public</th></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Who can find it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You and people you invite</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Anyone on the internet</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Who can clone it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You and people you invite</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Anyone</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Who can push to it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You and collaborators you invite</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You and collaborators you invite</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Good for</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Class work and anything unfinished</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Showing work to a college or employer later</td></tr>
+</table></div><p>Change it in repo <strong>Settings</strong>, then <strong>General</strong>, then scroll to the <strong>Danger Zone</strong> and <strong>Change repository visibility</strong>.</p>
+<p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">Before making anything public: no full names, no ID numbers, no passwords or keys in the code, and nothing you do not have the rights to share. Going back to private does not un-share what someone already copied.</p>
+  </div>
+</details>
+
+<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">5. Who can do what</summary>
+  <div style="margin-top: 10px;">
+<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
+<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Can they...</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Owner (you)</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Collaborator</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Anyone else, repo public</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Anyone else, repo private</th></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Open the repo page</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Clone or download it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Push commits to it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Add or remove collaborators</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Change visibility or delete it</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #dff3e7; color: #1a5e37; font-weight: bold;">Yes</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; background-color: #fbe1df; color: #8a241e; font-weight: bold;">No</td></tr>
+</table></div><p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">A collaborator can push to your repo, which means they can change and delete your files. Only add people you actually work with.</p>
+  </div>
+</details>
+
+<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">6. Inviting a collaborator</summary>
+  <div style="margin-top: 10px;">
+<ol style="padding-left: 22px;">
+<li>Ask for the person's exact GitHub <strong>username</strong> and read it back to them.</li>
+<li>On github.com, open your repo and click <strong>Settings</strong>.</li>
+<li>In the <strong>Access</strong> section of the sidebar, click <strong>Collaborators</strong>.</li>
+<li>Click <strong>Add people</strong>.</li>
+<li>Start typing the username and click the right person in the list of matches.</li>
+<li>Click the <strong>Add</strong> button that names the person and your repo. They show as <strong>Pending Invite</strong>.</li>
+<li>They accept from the email GitHub sends, or at <code style="font-family: JetBrains Mono, Consolas, Courier New, monospace; background-color: #d6f0ef; padding: 1px 5px; border-radius: 4px;">github.com/notifications</code>.</li>
+</ol>
+<p style="border-left: 6px solid #f5c518; background-color: #fff8dc; padding: 8px 14px; border-radius: 0 8px 8px 0;">Invitations expire after 7 days. To take access away later, use <strong>Remove</strong> on the same Collaborators page.</p>
+  </div>
+</details>
+
+<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">7. Troubleshooting</summary>
+  <div style="margin-top: 10px;">
+<div class="scroll"><table style="border-collapse: collapse; width: 100%; margin: 8px 0 12px 0;">
+<tr><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Problem</th><th style="background-color: #14264a; color: #ffffff; padding: 8px 10px; text-align: left;">Fix</th></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">I never got the invitation</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Check <code style="font-family: JetBrains Mono, Consolas, Courier New, monospace; background-color: #d6f0ef; padding: 1px 5px; border-radius: 4px;">github.com/notifications</code> or the email on your GitHub account. Make sure your partner typed your exact username.</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Their repo is not in my clone list</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You have not accepted the invitation yet. Accept it, then reopen the Clone window.</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">I already have a folder with that name</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">Pick a different Local Path or rename the old folder. Two repos cannot share one folder.</td></tr>
+<tr><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">I cannot find the Settings tab</td><td style="border: 1px solid #c9d3e3; padding: 8px 10px; vertical-align: top;">You only see Settings on repos you own. If the tabs are cut off, open the dropdown at the end of them.</td></tr>
+</table></div>
+  </div>
+</details>
+
+<details style="background-color: #ffffff; border: 2px solid #c9d3e3; border-left: 6px solid #0f8b8d; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; font-size: 19px; color: #14264a;">8. Quick check</summary>
+  <div style="margin-top: 10px;">
+<p style="margin-bottom: 4px;"><strong>1. You want to work on your game from a different computer. What do you do?</strong></p>
+<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
+  <p style="margin: 6px 0 0 0;">Clone the repo. You get every file and the history, and it stays connected so you can push back.</p>
+</details>
+<p style="margin-bottom: 4px;"><strong>2. Your repo is private. Can your teacher open it?</strong></p>
+<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
+  <p style="margin: 6px 0 0 0;">Only if you add them as a collaborator. Private means you and the people you invite.</p>
+</details>
+<p style="margin-bottom: 4px;"><strong>3. You invited your partner an hour ago and they still cannot push. Why?</strong></p>
+<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
+  <p style="margin: 6px 0 0 0;">They have not accepted the invitation yet.</p>
+</details>
+<p style="margin-bottom: 4px;"><strong>4. You pushed from the lab computer. What does your home laptop need?</strong></p>
+<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
+  <p style="margin: 6px 0 0 0;">A pull. Push sends work up, pull brings work down.</p>
+</details>
+<p style="margin-bottom: 4px;"><strong>5. Your repo is public. Can a stranger change your code?</strong></p>
+<details style="background-color: #d6f0ef; border-radius: 8px; padding: 8px 14px; margin-bottom: 14px;">
+  <summary style="cursor: pointer; font-weight: bold; color: #0f8b8d;">Show answer</summary>
+  <p style="margin: 6px 0 0 0;">No. They can read and clone it, but pushing to your repo takes a collaborator invitation from you.</p>
+</details>
+
+  </div>
+</details>
+
+<div style="background-color: #14264a; color: #ffffff; padding: 18px 24px; border-radius: 12px; margin-top: 18px; border-top: 6px solid #0f8b8d;">
+  <p style="margin: 0 0 8px 0; font-weight: bold; color: #f5c518; font-size: 18px;">Before you leave</p>
+  <ul style="margin: 0 0 12px 0; padding-left: 22px;">
+    <li>Submit the link to your repo in the Canvas assignment.</li>
+    <li>Check that your partner and your teacher both show up under Settings, then Collaborators.</li>
+    <li>Sign out of GitHub Desktop if this is a shared computer.</li>
+  </ul>
+  <p style="margin: 0 0 4px 0; font-weight: bold; color: #f5c518;">Next time: Lesson 4</p>
+  <p style="margin: 0;">Two people, one repo. Pull before you work, take turns safely, and see what happens when you both edit the same file.</p>
+</div>
+
+</div>
+</div>
+</body>
+</html>
