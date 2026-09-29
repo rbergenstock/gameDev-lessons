@@ -1,0 +1,1388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="An interactive lesson on probability, real versus pseudo randomness, and building a variable dice roller in Java. Bomber Works Interactive, Mountain Home High School.">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="The Dice Engine">
+<meta property="og:description" content="Roll the die, see the curve, break the machine, build the code.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='6' y='6' width='88' height='88' rx='16' fill='%23fff' stroke='%23BC1B2B' stroke-width='6'/%3E%3Cg fill='%23BC1B2B'%3E%3Ccircle cx='31' cy='31' r='8'/%3E%3Ccircle cx='69' cy='31' r='8'/%3E%3Ccircle cx='50' cy='50' r='8'/%3E%3Ccircle cx='31' cy='69' r='8'/%3E%3Ccircle cx='69' cy='69' r='8'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+/* Base reset -- matches the environment the page was authored in. */
+:root{
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{margin:0}
+body{font:14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>The Dice Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<style>
+/* Layout: one scrolling column of "instrument panels"; two accent families run
+   through the whole page - red for the physical world of chance, teal for the
+   machine that imitates it. */
+:root{
+  --ground:#F0EDEA; --panel:#FFFFFF; --panel-2:#F7F5F2; --sunk:#E8E3DF;
+  --ink:#17181B; --ink-2:#5E5954; --ink-3:#8C857E;
+  --rule:#D9D3CE; --rule-2:#C4BCB5;
+  --chance:#BC1B2B; --chance-2:#8E1421; --chance-soft:#F6E2E3;
+  --machine:#0E6E80; --machine-2:#0A5261; --machine-soft:#DDEDF0;
+  --ok:#2E7D52; --warn:#9C640C;
+  --font-display:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-body:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --maxw:1120px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#141519; --panel:#1C1E23; --panel-2:#23262C; --sunk:#101216;
+    --ink:#EDE9E4; --ink-2:#9C958D; --ink-3:#787069;
+    --rule:#33373E; --rule-2:#454A53;
+    --chance:#F2656F; --chance-2:#FF8E95; --chance-soft:#3A1E22;
+    --machine:#4FC2D6; --machine-2:#7FD8E7; --machine-soft:#12313A;
+    --ok:#5FC08A; --warn:#DCA451;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#141519; --panel:#1C1E23; --panel-2:#23262C; --sunk:#101216;
+  --ink:#EDE9E4; --ink-2:#9C958D; --ink-3:#787069;
+  --rule:#33373E; --rule-2:#454A53;
+  --chance:#F2656F; --chance-2:#FF8E95; --chance-soft:#3A1E22;
+  --machine:#4FC2D6; --machine-2:#7FD8E7; --machine-soft:#12313A;
+  --ok:#5FC08A; --warn:#DCA451;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--font-body); font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0; text-wrap:balance; font-family:var(--font-display); line-height:1.1}
+p{margin:0}
+a{color:var(--machine)}
+:focus-visible{outline:2.5px solid var(--machine); outline-offset:2px; border-radius:2px}
+
+/* ---------- nav ---------- */
+#nav{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:50;
+  background:color-mix(in srgb,var(--ground) 88%,transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule);
+}
+.navin{
+  max-width:var(--maxw); margin:0 auto;
+  padding-inline:clamp(16px,4vw,40px); padding-block:9px;
+  display:flex; align-items:center; gap:14px;
+}
+.brand{
+  font-family:var(--font-display); font-weight:900; font-stretch:118%;
+  font-size:13px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink); white-space:nowrap;
+}
+.brand span{color:var(--chance)}
+.navscroll{flex:1; min-width:0; overflow-x:auto; scrollbar-width:none}
+.navscroll::-webkit-scrollbar{display:none}
+.navlist{display:flex; gap:4px; list-style:none; margin:0; padding:0}
+.navlist a{
+  display:block; white-space:nowrap; text-decoration:none;
+  font-size:12.5px; font-weight:600; color:var(--ink-2);
+  padding:5px 9px; border-radius:100px;
+}
+.navlist a:hover{color:var(--ink); background:var(--sunk)}
+.navlist a.on{color:var(--panel); background:var(--ink)}
+#themer{
+  flex:none; border:1px solid var(--rule-2); background:var(--panel);
+  color:var(--ink-2); width:32px; height:32px; border-radius:100px;
+  cursor:pointer; font-size:14px; line-height:1; display:grid; place-items:center;
+}
+#themer:hover{color:var(--ink); border-color:var(--ink-3)}
+
+/* ---------- shell ---------- */
+.wrap{max-width:var(--maxw); margin:0 auto; padding-inline:clamp(16px,4vw,40px)}
+section{padding-block:clamp(40px,6vw,72px); border-top:1px solid var(--rule)}
+section:first-of-type{border-top:0}
+.eyebrow{
+  font-family:var(--font-mono); font-size:11px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+}
+.eyebrow::before{content:""; width:18px; height:2px; background:var(--chance); flex:none}
+.eyebrow.m::before{background:var(--machine)}
+h2{font-size:clamp(26px,4.2vw,38px); font-weight:800; font-stretch:112%; letter-spacing:-.015em}
+.lede{margin-top:12px; font-size:clamp(16px,1.9vw,18px); color:var(--ink-2); max-width:62ch}
+.prose{max-width:66ch; display:flex; flex-direction:column; gap:14px; margin-top:22px}
+.prose p{color:var(--ink-2)}
+.prose strong{color:var(--ink); font-weight:700}
+h3{font-size:19px; font-weight:800; font-stretch:108%; margin-top:6px}
+.term{
+  font-family:var(--font-mono); font-size:.88em; font-weight:700;
+  color:var(--chance); background:var(--chance-soft);
+  padding:1px 5px; border-radius:3px;
+}
+.term.m{color:var(--machine); background:var(--machine-soft)}
+
+/* ---------- panels ---------- */
+.panel{
+  background:var(--panel); border:1px solid var(--rule);
+  border-radius:10px; padding:clamp(16px,2.4vw,24px); margin-top:26px;
+}
+.panel.lab{border-top:3px solid var(--machine)}
+.panel.tablepanel{border-top:3px solid var(--chance)}
+.plabel{
+  font-family:var(--font-mono); font-size:11px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3);
+  margin-bottom:14px;
+}
+
+/* ---------- controls ---------- */
+.ctrls{display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end}
+.field{display:flex; flex-direction:column; gap:5px; min-width:0}
+.field label{
+  font-family:var(--font-mono); font-size:10.5px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+}
+.field input[type=range]{width:min(190px,44vw); accent-color:var(--chance)}
+.lab .field input[type=range]{accent-color:var(--machine)}
+.field input[type=number],.field select{
+  font-family:var(--font-mono); font-size:14px; padding:6px 8px;
+  background:var(--panel-2); color:var(--ink);
+  border:1px solid var(--rule-2); border-radius:6px; width:104px;
+}
+.btn{
+  font-family:var(--font-body); font-size:13.5px; font-weight:700;
+  padding:8px 14px; border-radius:7px; cursor:pointer;
+  border:1px solid var(--rule-2); background:var(--panel-2); color:var(--ink);
+}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--chance); border-color:var(--chance); color:#fff}
+.btn.primary:hover{background:var(--chance-2); border-color:var(--chance-2)}
+.btn.mach{background:var(--machine); border-color:var(--machine); color:#fff}
+.btn.mach:hover{background:var(--machine-2); border-color:var(--machine-2)}
+.btn.ghost{background:transparent}
+.btn.sm{font-size:12px; padding:5px 10px}
+.btn[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--panel)}
+
+/* ---------- readouts ---------- */
+.readout{
+  display:grid; gap:1px; background:var(--rule);
+  border:1px solid var(--rule); border-radius:8px; overflow:hidden;
+  grid-template-columns:repeat(auto-fit,minmax(112px,1fr));
+}
+.ro{background:var(--panel-2); padding:9px 12px; min-width:0}
+.ro dt{
+  font-family:var(--font-mono); font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+}
+.ro dd{
+  margin:2px 0 0; font-family:var(--font-mono); font-size:19px; font-weight:700;
+  font-variant-numeric:tabular-nums; color:var(--ink); overflow-wrap:anywhere;
+}
+.ro dd small{font-size:11px; font-weight:400; color:var(--ink-3)}
+.ro.hot dd{color:var(--chance)}
+.ro.cool dd{color:var(--machine)}
+
+/* ---------- code ---------- */
+.codewrap{position:relative; margin-top:14px}
+pre{
+  margin:0; background:var(--sunk); border:1px solid var(--rule);
+  border-radius:8px; padding:16px 16px; overflow-x:auto;
+  font-family:var(--font-mono); font-size:13px; line-height:1.62; color:var(--ink);
+  tab-size:4;
+}
+pre.console{background:#14161A; color:#DCE3E8; border-color:#2A2F36}
+:root[data-theme="dark"] pre.console,
+:root:not([data-theme="light"]) pre.console{background:#0C0E11}
+.cp{color:var(--ink-3)}                 /* comment */
+.ck{color:var(--chance); font-weight:700}/* keyword */
+.cs{color:var(--ok)}                     /* string  */
+.cn{color:var(--machine); font-weight:700}/* number/type */
+.hl{background:var(--machine-soft); border-radius:3px; padding:1px 3px; margin:-1px -1px}
+.copy{
+  position:absolute; top:8px; right:8px; z-index:2;
+  font-family:var(--font-mono); font-size:10.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+  padding:4px 9px; border-radius:5px; cursor:pointer;
+  border:1px solid var(--rule-2); background:var(--panel); color:var(--ink-2);
+}
+.copy:hover{color:var(--ink); border-color:var(--ink-3)}
+
+/* ---------- misc ---------- */
+.cards{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(248px,1fr)); margin-top:22px}
+.card{
+  background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+  padding:16px; display:flex; flex-direction:column; gap:8px; min-width:0;
+}
+.card h4{font-size:15.5px; font-weight:800}
+.card p{font-size:14px; color:var(--ink-2)}
+.tag{
+  align-self:flex-start; font-family:var(--font-mono); font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; padding:3px 7px; border-radius:4px;
+  background:var(--sunk); color:var(--ink-3);
+}
+.tag.hot{background:var(--chance-soft); color:var(--chance)}
+.tag.cool{background:var(--machine-soft); color:var(--machine)}
+details{border:1px solid var(--rule); border-radius:8px; background:var(--panel); margin-top:10px}
+details[open]{background:var(--panel-2)}
+summary{
+  cursor:pointer; padding:11px 14px; font-weight:700; font-size:14.5px;
+  list-style:none; display:flex; justify-content:space-between; gap:12px; align-items:center;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+"; font-family:var(--font-mono); color:var(--ink-3); font-size:17px}
+details[open] summary::after{content:"\2212"}
+.dbody{padding:0 14px 14px; font-size:14.5px; color:var(--ink-2); display:flex; flex-direction:column; gap:10px}
+.note{
+  border-left:3px solid var(--machine); background:var(--machine-soft);
+  padding:12px 14px; border-radius:0 8px 8px 0; font-size:14.5px; color:var(--ink);
+  margin-top:16px;
+}
+.note.hot{border-left-color:var(--chance); background:var(--chance-soft)}
+.note b{font-weight:800}
+.scroller{overflow-x:auto; margin-top:14px}
+table{border-collapse:collapse; font-size:14px; min-width:100%}
+th,td{
+  border:1px solid var(--rule); padding:7px 10px; text-align:center;
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+th{background:var(--panel-2); font-family:var(--font-mono); font-size:11px;
+   letter-spacing:.06em; text-transform:uppercase; color:var(--ink-2); font-weight:700}
+svg{display:block; max-width:100%}
+canvas{display:block; max-width:100%; border-radius:6px}
+.chartbox{margin-top:16px; overflow-x:auto}
+.chartbox svg{max-width:none; width:100%}
+#sumchart,#biaschart{min-width:600px}
+#facechart{min-width:380px}
+.legend{display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:12.5px; color:var(--ink-2)}
+.legend i{display:inline-block; width:13px; height:13px; border-radius:3px; vertical-align:-2px; margin-right:6px}
+.hr{height:1px; background:var(--rule); margin:26px 0}
+.small{font-size:13px; color:var(--ink-3)}
+footer{border-top:1px solid var(--rule); padding-block:34px 48px; color:var(--ink-3); font-size:13.5px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="navin">
+    <div class="brand">Bomber Works <span>/</span> Dice Engine</div>
+    <div class="navscroll"><ul class="navlist" id="navlist">
+      <li><a href="#roll">Roll</a></li>
+      <li><a href="#odds">Odds</a></li>
+      <li><a href="#nature">Real random</a></li>
+      <li><a href="#machine">The machine</a></li>
+      <li><a href="#bias">The bias</a></li>
+      <li><a href="#build">Build it</a></li>
+      <li><a href="#yours">Your turn</a></li>
+    </ul></div>
+    <button id="themer" type="button" title="Switch light / dark" aria-label="Switch light or dark theme">&#9681;</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ============================================ 1. ROLL -->
+<section id="roll">
+  <div class="eyebrow">Lesson 01 &middot; Start here</div>
+  <h2>Roll the die. Then explain what just happened.</h2>
+  <p class="lede">You are about to write a program that rolls dice. Before you can write it, you have to know
+  what a die actually does &mdash; and what a computer does when it pretends to be one.</p>
+
+  <div class="panel tablepanel">
+    <div class="plabel">Live d6</div>
+    <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:center">
+      <button id="bigdie" type="button" aria-label="Roll the die"
+        style="border:0; background:none; padding:0; cursor:pointer; flex:none">
+        <svg id="diesvg" width="132" height="132" viewBox="0 0 100 100" role="img" aria-label="A six-sided die">
+          <rect x="4" y="4" width="92" height="92" rx="16" fill="var(--panel-2)" stroke="var(--rule-2)" stroke-width="2"/>
+          <g id="pips" fill="var(--chance)"></g>
+        </svg>
+      </button>
+      <div style="flex:1; min-width:min(260px,100%)">
+        <dl class="readout" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">
+          <div class="ro hot"><dt>Last roll</dt><dd id="r-last">&mdash;</dd></div>
+          <div class="ro"><dt>Rolls</dt><dd id="r-count">0</dd></div>
+          <div class="ro"><dt>Average</dt><dd id="r-avg">&mdash;</dd></div>
+          <div class="ro"><dt>Perfect avg</dt><dd>3.50</dd></div>
+        </dl>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px">
+          <button class="btn primary" type="button" id="r-1">Roll</button>
+          <button class="btn" type="button" id="r-25">Roll &times;25</button>
+          <button class="btn ghost" type="button" id="r-reset">Reset</button>
+        </div>
+        <div class="chartbox" style="margin-top:14px">
+          <svg id="facechart" viewBox="0 0 520 130" width="520" height="130" role="img"
+               aria-label="Bar chart of how often each face has come up"></svg>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--chance)"></i>What you actually rolled</span>
+          <span><i style="background:var(--ink-3)"></i>16.7% &mdash; what theory says</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Roll it five times and the bars look like nothing. Roll it five hundred times and they flatten out toward
+    that dashed line. The line is <span class="term">theoretical probability</span> &mdash; one face out of six,
+    <span class="term">1/6</span>, 16.7% &mdash; and you get it by counting the faces, not by rolling. The bars are
+    <span class="term">experimental probability</span>: what actually happened.</p>
+    <p>They pull together as the count climbs. That is the <strong>law of large numbers</strong>, and it is worth
+    being precise about what it does <em>not</em> promise. A face is never "due." The die has no memory. Each roll is an
+    <span class="term">independent event</span>, and a run of four 1s tells you exactly nothing about the fifth roll.
+    Believing otherwise is the <strong>gambler's fallacy</strong>, and it is how casinos pay for the carpet.</p>
+  </div>
+</section>
+
+<!-- ============================================ 2. ODDS -->
+<section id="odds">
+  <div class="eyebrow">Lesson 02 &middot; Probability</div>
+  <h2>Two dice are not one die twice as big.</h2>
+  <p class="lede">Here is the mistake almost everybody makes: "two dice total 2 through 12, that's eleven results,
+  so each is 1 in 11." Wrong &mdash; and the chart below shows you why in about four seconds.</p>
+
+  <div class="panel tablepanel">
+    <div class="plabel">Distribution lab</div>
+    <div class="ctrls">
+      <div class="field">
+        <label for="o-dice">Dice &mdash; <b id="o-dice-v">2</b></label>
+        <input type="range" id="o-dice" min="1" max="8" value="2" step="1">
+      </div>
+      <div class="field">
+        <label for="o-sides">Sides &mdash; <b id="o-sides-v">6</b></label>
+        <input type="range" id="o-sides" min="3" max="20" value="6" step="1">
+      </div>
+      <button class="btn primary" type="button" id="o-1">Roll once</button>
+      <button class="btn" type="button" id="o-100">&times;100</button>
+      <button class="btn" type="button" id="o-10k">&times;10,000</button>
+      <button class="btn ghost" type="button" id="o-reset">Clear</button>
+    </div>
+
+    <dl class="readout" style="margin-top:16px">
+      <div class="ro hot"><dt>Last roll</dt><dd id="o-last">&mdash;</dd></div>
+      <div class="ro"><dt>Rolls made</dt><dd id="o-n">0</dd></div>
+      <div class="ro"><dt>Your average</dt><dd id="o-mean">&mdash;</dd></div>
+      <div class="ro"><dt>Theory says</dt><dd id="o-tmean">7.00</dd></div>
+      <div class="ro"><dt>Most likely total</dt><dd id="o-peak">7</dd></div>
+      <div class="ro"><dt>Its real odds</dt><dd id="o-peakp">16.7<small>%</small></dd></div>
+    </dl>
+
+    <div class="chartbox">
+      <svg id="sumchart" viewBox="0 0 900 300" width="900" height="300" role="img"
+           aria-label="Histogram of dice totals against theoretical probability"></svg>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--chance)"></i>Your rolls</span>
+      <span><i style="background:var(--ink-3)"></i>Exact probability, computed</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>The two dice are separate objects. Die A lands six ways; for each of those, die B lands six ways. That is
+    <strong>6 &times; 6 = 36 equally likely outcomes</strong>, and those 36 are not spread evenly across the totals.
+    One pair makes a 2 (1 and 1). One pair makes a 12 (6 and 6). But six different pairs make a 7 &mdash;
+    1&#8226;6, 2&#8226;5, 3&#8226;4, 4&#8226;3, 5&#8226;2, 6&#8226;1. A seven is six times more likely than a twelve.</p>
+    <p>Push the dice slider to 5 or 6 and watch the shape. It stops being a triangle and becomes a bell. More dice
+    means the extremes need more things to go right at once, so the middle swallows everything. This is why
+    <strong>3d6 feels completely different from 1d18</strong> even though both run 3 to 18: the d18 is flat, and 3d6
+    clusters hard around 10 and 11. When you tune a game's damage or loot, this curve is the dial you are turning.</p>
+  </div>
+
+  <div class="note hot"><b>Design check.</b> Your roller is going to take a number of dice and a number of sides.
+  Every combination a player types produces one of these curves. Knowing the shape is the difference between
+  balancing a game and guessing at it.</div>
+</section>
+
+<!-- ============================================ 3. NATURE -->
+<section id="nature">
+  <div class="eyebrow">Lesson 03 &middot; Where randomness lives</div>
+  <h2>A rolling die is not actually random.</h2>
+  <p class="lede">Physics says the face was decided the moment the die left your hand. That is not a technicality.
+  It is the whole reason a computer can imitate one.</p>
+
+  <div class="prose">
+    <p>A die in the air is a solid object obeying Newton's laws. Position, spin, velocity, the springiness of the
+    table, the air in the room &mdash; feed all of it into the math and the landing face falls out. People have built
+    machines that do this. The die is unpredictable to <em>you</em> because the answer depends so violently on the
+    starting conditions that a thousandth of a degree of tilt flips it. That property is called
+    <span class="term">sensitive dependence on initial conditions</span>, better known as <strong>chaos</strong>.
+    Weather, shuffled cards, and coin flips are all in this family: <strong>deterministic, but hopeless to predict.</strong>
+    The information exists. You just can't get at it.</p>
+    <p>Then there is the other kind, and it is different in nature rather than in difficulty. Take one atom of a
+    radioactive isotope. It will decay at some point. Physics gives you the probability that it decays in the next
+    second, but nothing inside that atom &mdash; no timer, no hidden variable anyone has ever found &mdash; decides when.
+    Two identical atoms, prepared identically, decay at different times. As far as modern physics can tell,
+    <strong>the answer does not exist anywhere in advance.</strong> That is true randomness.</p>
+  </div>
+
+  <div class="panel tablepanel">
+    <div class="plabel">Sort them &mdash; tap a button on each row</div>
+    <div id="sorter"></div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px">
+      <button class="btn ghost sm" type="button" id="s-reset">Start over</button>
+      <span class="small" id="s-score">0 of 6 sorted</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>When engineers need the real thing, they go outside the computer and measure the physical world. A Geiger
+    counter watching a radioactive sample. Thermal noise &mdash; the electrons in any warm resistor jitter, and Intel
+    ships that as a processor instruction called <span class="term m">RDRAND</span>. The site random.org listens to
+    atmospheric radio static, mostly distant lightning. Cloudflare, which carries a large slice of the world's web
+    traffic, points a camera at roughly a hundred lava lamps in its San Francisco lobby; London uses a double
+    pendulum, Lisbon a bank of wave machines. It reads like a joke. It is load-bearing infrastructure.</p>
+    <p>Notice what every one of those has in common. <strong>The computer had to reach outside itself.</strong>
+    It cannot make randomness internally. Next section is why.</p>
+  </div>
+</section>
+
+<!-- ============================================ 4. MACHINE -->
+<section id="machine">
+  <div class="eyebrow m">Lesson 04 &middot; Inside the machine</div>
+  <h2>So it fakes it. Here is the actual formula.</h2>
+  <p class="lede">A computer is engineered to be the opposite of random: same input, same output, every time. That is
+  the point &mdash; you would not trust a calculator that changed its mind on Tuesdays. So when you ask for a random
+  number, it runs arithmetic instead.</p>
+
+  <div class="prose">
+    <p>The trick is a <span class="term m">pseudorandom number generator</span>, or PRNG. <em>Pseudo</em> means fake.
+    You hand it a starting number called the <span class="term m">seed</span>; it does some math; the answer is both
+    your "random" number and the seed for the next one. The classic recipe is the
+    <strong>linear congruential generator</strong>:</p>
+  </div>
+
+  <div class="codewrap"><pre>next_seed = (<span class="cn">a</span> * seed + <span class="cn">c</span>) mod <span class="cn">m</span>        <span class="cp">// multiply, add, chop off the top</span>
+face      = (next_seed mod sides) + <span class="cn">1</span></pre></div>
+
+  <div class="panel lab">
+    <div class="plabel">LCG lab &mdash; you are the processor</div>
+    <div class="ctrls">
+      <div class="field"><label for="g-a">Multiplier a</label><input type="number" id="g-a" value="5" min="0" max="4095" step="1"></div>
+      <div class="field"><label for="g-c">Increment c</label><input type="number" id="g-c" value="3" min="0" max="4095" step="1"></div>
+      <div class="field"><label for="g-m">Modulus m</label>
+        <select id="g-m"><option>16</option><option>64</option><option selected>256</option><option>1024</option><option>4096</option></select>
+      </div>
+      <div class="field"><label for="g-s">Seed</label><input type="number" id="g-s" value="7" min="0" max="4095" step="1"></div>
+      <div class="field"><label for="g-f">Sides</label><input type="number" id="g-f" value="6" min="3" max="20" step="1"></div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px">
+      <span class="small" style="align-self:center; margin-right:4px">Presets:</span>
+      <button class="btn sm" type="button" data-lcg="5,3,16,7">Classroom tiny</button>
+      <button class="btn sm" type="button" data-lcg="129,1,256,7">Broken</button>
+      <button class="btn sm" type="button" data-lcg="5,1,256,7">Sloppy</button>
+      <button class="btn sm" type="button" data-lcg="137,1,256,7">Good</button>
+      <button class="btn sm" type="button" data-lcg="6,3,16,7">Stuck</button>
+    </div>
+
+    <dl class="readout" style="margin-top:16px">
+      <div class="ro cool"><dt>Period</dt><dd id="g-period">&mdash;</dd></div>
+      <div class="ro"><dt>Possible states</dt><dd id="g-states">256</dd></div>
+      <div class="ro"><dt>Full cycle?</dt><dd id="g-full">&mdash;</dd></div>
+      <div class="ro"><dt>Rarest face</dt><dd id="g-rare">&mdash;</dd></div>
+      <div class="ro"><dt>Commonest face</dt><dd id="g-common">&mdash;</dd></div>
+      <div class="ro"><dt>Spread</dt><dd id="g-spread">&mdash;</dd></div>
+    </dl>
+
+    <div style="display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); margin-top:18px">
+      <div style="min-width:0">
+        <div class="plabel" style="margin-bottom:8px">Every state, plotted against the next one</div>
+        <canvas id="g-scatter" width="520" height="520" style="width:100%; aspect-ratio:1/1; background:var(--sunk); border:1px solid var(--rule)"></canvas>
+        <p class="small" style="margin-top:8px">Each dot is one state paired with the state that follows it.
+        <strong>Every</strong> LCG lays its dots on a lattice. Good constants make the lattice so fine you cannot see
+        it; bad ones leave stripes a student can spot from the back of the room.</p>
+      </div>
+      <div style="min-width:0">
+        <div class="plabel" style="margin-bottom:8px">The faces it hands out, in order</div>
+        <div class="codewrap"><pre id="g-stream" style="max-height:232px; overflow:auto"></pre></div>
+        <p class="small" style="margin-top:8px">Marked in red where the sequence starts over. After that point the
+        generator repeats itself forever &mdash; identical numbers, identical order.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><b>Press Broken, then press Good, and watch only the readouts.</b> They barely move: both
+  generators use every state exactly once, and both hand out faces within half a percentage point of each other.
+  By the numbers, both are fine. Now look at the picture. Every "random" number the broken one produces lands on
+  one of three straight lines &mdash; tell me the first value and I can tell you the next hundred. Statistics can
+  pass while the structure underneath is garbage, which is exactly why nobody rolls their own generator.</div>
+
+  <div class="prose">
+    <p>Java's own <span class="term m">java.util.Random</span> is exactly this machine, and Oracle publishes the
+    constants. It keeps a 48-bit seed and grinds it with
+    <span class="term m">seed = (seed &times; 0x5DEECE66D + 0xB) mod 2<sup>48</sup></span>. The
+    <span class="term m">period</span> &mdash; how many numbers it produces before the whole sequence restarts &mdash; is
+    2<sup>48</sup>, about 281 trillion. Huge, but finite, and finite is the point: a formula with a fixed amount of
+    memory must eventually land on a state it has been in before, and from that instant it is doomed to repeat.</p>
+    <p>Where does the first seed come from? Usually the clock. <code style="font-family:var(--font-mono);font-size:.9em">new Random()</code>
+    with empty parentheses grabs the current time in nanoseconds, so every run feels different. Hand it a seed
+    yourself and it stops being surprising at all.</p>
+  </div>
+
+  <div class="panel lab">
+    <div class="plabel">Java mirror &mdash; this page runs the real algorithm</div>
+    <div class="ctrls">
+      <div class="field"><label for="j-seed">Seed</label><input type="number" id="j-seed" value="42" min="0" step="1"></div>
+      <div class="field"><label for="j-sides">Sides</label><input type="number" id="j-sides" value="6" min="3" max="100" step="1"></div>
+      <div class="field"><label for="j-n">How many</label><input type="number" id="j-n" value="12" min="1" max="60" step="1"></div>
+      <button class="btn mach" type="button" id="j-run">Run it</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button" data-copy="#j-code">Copy</button>
+      <pre id="j-code"></pre>
+    </div>
+    <div class="codewrap"><pre class="console" id="j-out"></pre></div>
+    <div class="note"><b>Try this in class.</b> Type that program into CodeHS exactly as it appears, run it, and
+    compare the output line to what this page printed. It matches, character for character, on every machine on
+    earth. The page is not guessing &mdash; it is running Java's own 48-bit formula in your browser. That is what
+    "deterministic" means, and it is why a shared world seed in Minecraft builds you the same world it built
+    somebody in Norway.</div>
+  </div>
+
+  <div class="prose">
+    <h3>What about AI?</h3>
+    <p>A language model has no random bone in it either. Give it a prompt and it computes a probability for every
+    possible next word, using fixed arithmetic on fixed numbers. Something still has to <em>choose</em> one. That
+    chooser is a sampler, and the sampler pulls from a PRNG &mdash; the same clock-seeded arithmetic your dice program
+    is about to use. A setting called <strong>temperature</strong> stretches or flattens those probabilities to make
+    the pick more adventurous or more predictable, but it adds no randomness; it only reshapes the distribution being
+    sampled. Fix the seed, set temperature to zero, and the model writes the same sentence word for word, every time.
+    The creativity is a large pile of arithmetic drawing lots from a small pile of arithmetic.</p>
+    <p>When the stakes are real &mdash; encryption keys, login tokens, shuffling a deck for money &mdash; pseudorandom is
+    not good enough, because whoever learns your seed owns every number you will ever produce. That is when a program
+    reaches for <span class="term m">SecureRandom</span>, which asks the operating system for entropy scraped off the
+    physical world: keystroke timing, disk interrupts, electrical noise, RDRAND. The computer is still faking it.
+    It is just refilling the fake from something real.</p>
+  </div>
+</section>
+
+<!-- ============================================ 5. BIAS -->
+<section id="bias">
+  <div class="eyebrow m">Lesson 05 &middot; The bug nobody sees</div>
+  <h2>Six does not divide evenly into anything a computer likes.</h2>
+  <p class="lede">Your generator hands you a number from a big range. You need a number from 1 to 6. Folding one into
+  the other with <span class="term m">mod</span> is the obvious move, and it quietly loads the dice.</p>
+
+  <div class="panel lab">
+    <div class="plabel">Modulo bias &mdash; watch the leftovers</div>
+    <div class="ctrls">
+      <div class="field">
+        <label for="b-m">States the generator gives &mdash; <b id="b-m-v">16</b></label>
+        <input type="range" id="b-m" min="6" max="40" value="16" step="1">
+      </div>
+      <div class="field">
+        <label for="b-n">Faces you want &mdash; <b id="b-n-v">6</b></label>
+        <input type="range" id="b-n" min="3" max="12" value="6" step="1">
+      </div>
+      <button class="btn" type="button" id="b-fix" aria-pressed="false">Apply Java's fix</button>
+    </div>
+
+    <div class="chartbox">
+      <svg id="biaschart" viewBox="0 0 900 260" width="900" height="260" role="img"
+           aria-label="Which faces receive extra states under modulo"></svg>
+    </div>
+    <dl class="readout" style="margin-top:14px">
+      <div class="ro cool"><dt>States per face</dt><dd id="b-per">&mdash;</dd></div>
+      <div class="ro"><dt>Leftover states</dt><dd id="b-left">&mdash;</dd></div>
+      <div class="ro"><dt>Luckiest face</dt><dd id="b-best">&mdash;</dd></div>
+      <div class="ro"><dt>Unluckiest face</dt><dd id="b-worst">&mdash;</dd></div>
+      <div class="ro"><dt>How unfair</dt><dd id="b-gap">&mdash;</dd></div>
+    </dl>
+  </div>
+
+  <div class="prose">
+    <p>Drag the states slider to 16 and the faces slider to 6. Sixteen states, six faces: 16 &divide; 6 is 2 remainder
+    4, so four of the faces get three states and two of them get two. Faces 1 through 4 come up 18.75% of the time and
+    faces 5 and 6 come up 12.5%. No choice of multiplier or increment repairs this, because the problem is not the
+    generator. It is that <strong>6 does not divide 16.</strong></p>
+    <p>Press <em>Apply Java's fix</em> and the leftover states go grey. That is exactly what
+    <span class="term m">nextInt(bound)</span> does: it spots the values that would land in the uneven tail, throws
+    them away, and draws again. Costs a rare extra draw; buys a genuinely fair die. This is one of the reasons to call
+    <span class="term m">rng.nextInt(6)</span> instead of writing your own <span class="term m">mod 6</span>, and it is
+    a good answer to give when somebody asks why you didn't "just do the math yourself."</p>
+  </div>
+
+  <div class="note hot"><b>The other trap, and it is the one you will actually hit.</b>
+  <span class="term m">nextInt(6)</span> returns <b>0, 1, 2, 3, 4, or 5</b> &mdash; it starts at zero and stops one
+  short of six. Forget the <span class="term m">+ 1</span> and your die grows a blank face and loses its six. Add one
+  to the bound instead of the result and it grows a seventh. Both compile. Both run. Neither is a die.</div>
+</section>
+
+<!-- ============================================ 6. BUILD -->
+<section id="build">
+  <div class="eyebrow">Lesson 06 &middot; Build it</div>
+  <h2>Five steps to a dice engine.</h2>
+  <p class="lede">Plain Java, console in and console out. Each step adds one idea and nothing else. Type them &mdash;
+  don't paste &mdash; and run each one before moving on.</p>
+
+  <div class="panel tablepanel" style="padding-block:18px">
+    <div style="display:flex; gap:6px; flex-wrap:wrap" id="steptabs"></div>
+  </div>
+
+  <div id="stepbody"></div>
+
+  <div class="note hot"><b>The finished engine takes any number of dice with any number of sides, minimum three.</b>
+  A two-sided die is a coin and a one-sided die is a joke, so the program refuses them and asks again &mdash; that
+  <span class="term">do-while</span> loop in step 4 is doing real work. Roll 3d6 for a stat block, 1d20 for an attack,
+  8d4 because somebody wants to see the bell curve from lesson 2 show up in their own console.</div>
+</section>
+
+<!-- ============================================ 7. YOURS -->
+<section id="yours">
+  <div class="eyebrow">Lesson 07 &middot; Your turn</div>
+  <h2>Now break it, bend it, and prove you understand it.</h2>
+  <p class="lede">Pick at least two. The first one is the one I most want to see working.</p>
+
+  <div class="cards">
+    <div class="card">
+      <span class="tag hot">Challenge 01</span>
+      <h4>Loaded dice</h4>
+      <p>Make a 6 come up twice as often as any other face, using nothing but <span class="term m">nextInt</span>.
+      Hint: ask for a range bigger than six, then decide what to do with the extra value. Prove it worked by rolling
+      60,000 times and printing the tally.</p>
+    </div>
+    <div class="card">
+      <span class="tag hot">Challenge 02</span>
+      <h4>Advantage and disadvantage</h4>
+      <p>Roll 2d20 and keep the higher one. Then a version that keeps the lower. Roll each 10,000 times and print the
+      average. Before you run it, write down what you think the two averages will be. Then find out how wrong you were.</p>
+    </div>
+    <div class="card">
+      <span class="tag cool">Challenge 03</span>
+      <h4>Seeded replay</h4>
+      <p>Add a menu option that lets the player type a seed. Same seed, same rolls, every time. Now you can reproduce a
+      bug report, or hand a friend a number and have them play your exact game.</p>
+    </div>
+    <div class="card">
+      <span class="tag cool">Challenge 04</span>
+      <h4>Histogram in the console</h4>
+      <p>After N rolls, print a bar chart out of asterisks &mdash; one row per possible total, one star per 1% of the
+      rolls. Run 5d6 and watch lesson 2's bell curve appear in your own terminal.</p>
+    </div>
+    <div class="card">
+      <span class="tag hot">Challenge 05</span>
+      <h4>The exploding die</h4>
+      <p>Roll a d6. If it comes up 6, roll again and add it. Keep going while you keep rolling sixes. What is the
+      highest total you can get? What is the average? Why is this loop a genuine risk of never ending, and why is that
+      risk effectively zero?</p>
+    </div>
+    <div class="card">
+      <span class="tag cool">Challenge 06</span>
+      <h4>Prove the bias</h4>
+      <p>Write a generator using the tiny LCG from lesson 4 &mdash; <span class="term m">(5 &times; seed + 3) mod 16</span>
+      &mdash; and roll a d6 with it 60,000 times. Print the tally. Explain the shape of the result in one sentence.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:34px">Check yourself before you start coding</h3>
+  <div id="quiz"></div>
+</section>
+
+<footer class="wrap" style="padding-inline:0">
+  <div class="wrap" style="max-width:none; padding-inline:0">
+    Bomber Works Interactive &middot; Game Development &middot; Mountain Home High School.
+    Every Java output on this page was produced by compiling and running the code on JDK 21, and the Java mirror
+    runs Oracle's own 48-bit algorithm in your browser.
+  </div>
+</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ===================== java.util.Random, faithfully ===================== */
+const MASK48=(1n<<48n)-1n, MULT=0x5DEECE66Dn, ADD=0xBn;
+class JavaRandom{
+  constructor(seed){this.setSeed(BigInt(seed));}
+  setSeed(s){this.seed=(s^MULT)&MASK48;}
+  next(bits){this.seed=(this.seed*MULT+ADD)&MASK48;return Number(this.seed>>BigInt(48-bits))|0;}
+  nextInt(bound){
+    let r=this.next(31), m=bound-1;
+    if((bound&m)===0) return Number((BigInt(bound)*BigInt(r))>>31n)|0;
+    for(let u=r;((u-(r=u%bound)+m)|0)<0;u=this.next(31)){}
+    return r;
+  }
+}
+const rng=new JavaRandom(BigInt(Date.now())^BigInt(Math.floor(Math.random()*1e9)));
+const d=(s)=>document.querySelector(s);
+const svgEl=(t,a)=>{const e=document.createElementNS("http://www.w3.org/2000/svg",t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const fmt=(n,p=2)=>n.toFixed(p);
+
+/* ===================== theme ===================== */
+(function(){
+  const root=document.documentElement, b=d("#themer");
+  let saved=null; try{saved=localStorage.getItem("de-theme");}catch(e){}
+  if(saved==="dark"||saved==="light") root.setAttribute("data-theme",saved);
+  b.addEventListener("click",()=>{
+    const dark=getComputedStyle(root).getPropertyValue("color-scheme").trim()==="dark";
+    const next=dark?"light":"dark";
+    root.setAttribute("data-theme",next);
+    try{localStorage.setItem("de-theme",next);}catch(e){}
+    drawFaces(); drawSums(); drawBias(); drawScatter();
+  });
+})();
+
+/* ===================== nav highlight ===================== */
+(function(){
+  const links=[...document.querySelectorAll("#navlist a")];
+  const secs=links.map(a=>document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{
+      if(!e.isIntersecting) return;
+      links.forEach(l=>l.classList.toggle("on",l.getAttribute("href")==="#"+e.target.id));
+    });
+  },{rootMargin:"-45% 0px -50% 0px"});
+  secs.forEach(s=>io.observe(s));
+})();
+
+/* ===================== copy buttons ===================== */
+document.addEventListener("click",(ev)=>{
+  const b=ev.target.closest(".copy"); if(!b) return;
+  const src=document.querySelector(b.dataset.copy); if(!src) return;
+  const txt=src.innerText;
+  const done=()=>{const o=b.textContent;b.textContent="Copied";setTimeout(()=>b.textContent=o,1300);};
+  try{
+    navigator.clipboard.writeText(txt).then(done,()=>{selectNode(src);b.textContent="Select + copy";});
+  }catch(e){selectNode(src);}
+});
+function selectNode(n){const r=document.createRange();r.selectNodeContents(n);const s=getSelection();s.removeAllRanges();s.addRange(r);}
+
+/* ===================== 1. live d6 ===================== */
+const PIP={1:[[50,50]],2:[[30,30],[70,70]],3:[[30,30],[50,50],[70,70]],
+  4:[[30,30],[70,30],[30,70],[70,70]],5:[[30,30],[70,30],[50,50],[30,70],[70,70]],
+  6:[[30,28],[70,28],[30,50],[70,50],[30,72],[70,72]]};
+let faceCounts=[0,0,0,0,0,0,0], faceTotal=0, faceSum=0;
+function paintDie(v){
+  const g=d("#pips"); g.textContent="";
+  PIP[v].forEach(([x,y])=>g.appendChild(svgEl("circle",{cx:x,cy:y,r:7.4,fill:"var(--chance)"})));
+}
+function drawFaces(){
+  const svg=d("#facechart"); svg.textContent="";
+  const W=520,H=130,L=26,R=10,T=10,B=24, pw=W-L-R, ph=H-T-B;
+  const ink3=getComputedStyle(document.documentElement).getPropertyValue("--ink-3").trim();
+  const shares=faceTotal?faceCounts.slice(1).map(c=>c/faceTotal):[0];
+  const top=Math.max(0.30,Math.max(...shares)*1.18);
+  const y=(p)=>T+ph-(p/top)*ph;
+  svg.appendChild(svgEl("line",{x1:L-4,y1:T+ph,x2:W-R,y2:T+ph,stroke:"var(--rule-2)","stroke-width":1}));
+  const ty=y(1/6);
+  svg.appendChild(svgEl("line",{x1:L-4,y1:ty,x2:W-R,y2:ty,stroke:ink3,"stroke-width":1.5,"stroke-dasharray":"5 4"}));
+  const bw=pw/6;
+  for(let f=1;f<=6;f++){
+    const p=faceTotal?faceCounts[f]/faceTotal:0;
+    const x=L+(f-1)*bw+bw*0.16, w=bw*0.68;
+    const hgt=Math.max(faceTotal?1.5:0,(T+ph)-y(p));
+    svg.appendChild(svgEl("rect",{x:x,y:(T+ph)-hgt,width:w,height:hgt,fill:"var(--chance)",rx:2}));
+    const t=svgEl("text",{x:x+w/2,y:H-8,"text-anchor":"middle",fill:"var(--ink-2)",
+      "font-size":"12","font-family":"var(--font-mono)"}); t.textContent=f; svg.appendChild(t);
+  }
+  const lt=svgEl("text",{x:L-8,y:ty-4,"text-anchor":"start",fill:ink3,"font-size":"10",
+    "font-family":"var(--font-mono)"}); lt.textContent="16.7%"; svg.appendChild(lt);
+}
+function rollOne(){
+  const v=rng.nextInt(6)+1;
+  faceCounts[v]++; faceTotal++; faceSum+=v;
+  d("#r-last").textContent=v; d("#r-count").textContent=faceTotal.toLocaleString();
+  d("#r-avg").textContent=fmt(faceSum/faceTotal);
+  paintDie(v); drawFaces();
+}
+d("#bigdie").addEventListener("click",rollOne);
+d("#r-1").addEventListener("click",rollOne);
+d("#r-25").addEventListener("click",()=>{
+  let v=1;
+  for(let i=0;i<25;i++){v=rng.nextInt(6)+1;faceCounts[v]++;faceTotal++;faceSum+=v;}
+  paintDie(v);
+  d("#r-last").textContent=v;
+  d("#r-count").textContent=faceTotal.toLocaleString();
+  d("#r-avg").textContent=fmt(faceSum/faceTotal); drawFaces();});
+d("#r-reset").addEventListener("click",()=>{faceCounts=[0,0,0,0,0,0,0];faceTotal=0;faceSum=0;
+  d("#r-last").textContent="—";d("#r-count").textContent="0";d("#r-avg").textContent="—";drawFaces();});
+for(let i=0;i<12;i++){const v=rng.nextInt(6)+1;faceCounts[v]++;faceTotal++;faceSum+=v;
+  if(i===11){paintDie(v);d("#r-last").textContent=v;}}
+d("#r-count").textContent=faceTotal; d("#r-avg").textContent=fmt(faceSum/faceTotal);
+drawFaces();
+
+/* ===================== 2. distribution lab ===================== */
+let oDice=2,oSides=6,oCounts=new Map(),oN=0,oSum=0;
+function theory(n,s){
+  let dist=[1];
+  for(let i=0;i<n;i++){
+    const nd=new Array(dist.length+s).fill(0);
+    for(let k=0;k<dist.length;k++) if(dist[k])
+      for(let f=1;f<=s;f++) nd[k+f]+=dist[k]/s;
+    dist=nd;
+  }
+  return dist; // index = total
+}
+function drawSums(){
+  const svg=d("#sumchart"); svg.textContent="";
+  const W=900,H=300,L=44,R=14,T=16,B=40, pw=W-L-R, ph=H-T-B;
+  const th=theory(oDice,oSides);
+  const lo=oDice, hi=oDice*oSides, k=hi-lo+1;
+  const ink3=getComputedStyle(document.documentElement).getPropertyValue("--ink-3").trim();
+  let top=0;
+  for(let t=lo;t<=hi;t++){ top=Math.max(top,th[t]||0, oN?(oCounts.get(t)||0)/oN:0); }
+  top=Math.max(top*1.14,0.02);
+  const y=(p)=>T+ph-(p/top)*ph, bw=pw/k;
+  [0,.25,.5,.75,1].forEach(f=>{
+    const yy=T+ph-f*ph;
+    svg.appendChild(svgEl("line",{x1:L,y1:yy,x2:W-R,y2:yy,stroke:"var(--rule)","stroke-width":1}));
+    const t=svgEl("text",{x:L-8,y:yy+4,"text-anchor":"end",fill:ink3,"font-size":"11","font-family":"var(--font-mono)"});
+    t.textContent=(top*f*100).toFixed(top*100<6?1:0)+"%"; svg.appendChild(t);
+  });
+  for(let t=lo;t<=hi;t++){
+    const i=t-lo, x=L+i*bw;
+    const p=oN?(oCounts.get(t)||0)/oN:0;
+    const hgt=Math.max(oN&&p?1.5:0,(T+ph)-y(p));
+    svg.appendChild(svgEl("rect",{x:x+bw*0.14,y:(T+ph)-hgt,width:bw*0.72,height:hgt,fill:"var(--chance)",rx:1.5}));
+  }
+  // theoretical markers
+  const pts=[];
+  for(let t=lo;t<=hi;t++){const i=t-lo;pts.push([L+i*bw+bw/2,y(th[t]||0)]);}
+  pts.forEach(([x,yy],i)=>{
+    svg.appendChild(svgEl("line",{x1:L+i*bw+bw*0.06,y1:yy,x2:L+i*bw+bw*0.94,y2:yy,
+      stroke:ink3,"stroke-width":2.2,"stroke-linecap":"round"}));
+  });
+  const step=k>24?Math.ceil(k/18):1;
+  for(let t=lo;t<=hi;t++){
+    if((t-lo)%step) continue;
+    const x=L+(t-lo)*bw+bw/2;
+    const tx=svgEl("text",{x:x,y:H-16,"text-anchor":"middle",fill:"var(--ink-2)","font-size":"11","font-family":"var(--font-mono)"});
+    tx.textContent=t; svg.appendChild(tx);
+  }
+  const ax=svgEl("text",{x:L+pw/2,y:H-2,"text-anchor":"middle",fill:ink3,"font-size":"11","font-family":"var(--font-mono)"});
+  ax.textContent="TOTAL OF "+oDice+"d"+oSides; svg.appendChild(ax);
+  svg.appendChild(svgEl("line",{x1:L,y1:T+ph,x2:W-R,y2:T+ph,stroke:"var(--rule-2)","stroke-width":1.5}));
+  // readouts that depend on theory
+  let best=lo; for(let t=lo;t<=hi;t++) if((th[t]||0)>(th[best]||0)) best=t;
+  d("#o-peak").textContent=best;
+  d("#o-peakp").innerHTML=((th[best]||0)*100).toFixed(1)+"<small>%</small>";
+  d("#o-tmean").textContent=fmt(oDice*(oSides+1)/2);
+}
+function oRoll(times){
+  let last=0;
+  for(let i=0;i<times;i++){
+    let t=0; for(let j=0;j<oDice;j++) t+=rng.nextInt(oSides)+1;
+    oCounts.set(t,(oCounts.get(t)||0)+1); oN++; oSum+=t; last=t;
+  }
+  d("#o-last").textContent=last;
+  d("#o-n").textContent=oN.toLocaleString();
+  d("#o-mean").textContent=fmt(oSum/oN);
+  drawSums();
+}
+function oClear(){oCounts=new Map();oN=0;oSum=0;
+  d("#o-last").textContent="—";d("#o-n").textContent="0";d("#o-mean").textContent="—";drawSums();}
+d("#o-dice").addEventListener("input",e=>{oDice=+e.target.value;d("#o-dice-v").textContent=oDice;oClear();});
+d("#o-sides").addEventListener("input",e=>{oSides=+e.target.value;d("#o-sides-v").textContent=oSides;oClear();});
+d("#o-1").addEventListener("click",()=>oRoll(1));
+d("#o-100").addEventListener("click",()=>oRoll(100));
+d("#o-10k").addEventListener("click",()=>oRoll(10000));
+d("#o-reset").addEventListener("click",oClear);
+oRoll(300);
+
+/* ===================== 3. sorter ===================== */
+const ITEMS=[
+  {t:"A single radioactive atom decaying",a:"true",
+   w:"Nothing inside the atom decides when. Physics gives a probability and stops there."},
+  {t:"Which face a thrown die lands on",a:"chaos",
+   w:"Newton settled it the moment it left your hand. You just cannot measure the throw finely enough."},
+  {t:"Tomorrow's weather",a:"chaos",
+   w:"Deterministic physics, but a rounding error in today's data becomes a different week."},
+  {t:"Electrical noise in a warm resistor",a:"true",
+   w:"Thermal jitter at the quantum level. Intel ships a chip instruction that harvests it."},
+  {t:"A shuffling machine that runs the identical shuffle every time",a:"none",
+   w:"Same input, same output. That is a machine following a script, not chance."},
+  {t:"new Random(42).nextInt(6) in your Java program",a:"none",
+   w:"Same seed, same formula, same ten numbers on every computer on earth. Nothing random about it."}
+];
+const LABELS={true:"Truly random",chaos:"Chaotic",none:"Not random"};
+function buildSorter(){
+  const host=d("#sorter"); host.textContent="";
+  ITEMS.forEach((it,i)=>{
+    const row=document.createElement("div");
+    row.style.cssText="border-top:1px solid var(--rule);padding:12px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between";
+    if(i===0) row.style.borderTop="0";
+    const label=document.createElement("div");
+    label.style.cssText="flex:1 1 230px;min-width:0;font-size:15px";
+    label.textContent=it.t;
+    const btns=document.createElement("div");
+    btns.style.cssText="display:flex;gap:6px;flex-wrap:wrap;flex:none";
+    ["true","chaos","none"].forEach(k=>{
+      const b=document.createElement("button");
+      b.type="button"; b.className="btn sm"; b.textContent=LABELS[k];
+      b.addEventListener("click",()=>{
+        [...btns.children].forEach(x=>{x.style.background="";x.style.borderColor="";x.style.color="";});
+        const right=k===it.a;
+        b.style.background=right?"var(--ok)":"var(--chance)";
+        b.style.borderColor=right?"var(--ok)":"var(--chance)";
+        b.style.color="#fff";
+        fb.hidden=false;
+        fb.innerHTML="<b>"+(right?"Yes.":"Not quite — it is "+LABELS[it.a].toLowerCase()+".")+"</b> "+it.w;
+        fb.style.borderLeftColor=right?"var(--ok)":"var(--chance)";
+        it.done=true; score();
+      });
+      btns.appendChild(b);
+    });
+    const fb=document.createElement("div");
+    fb.className="small"; fb.hidden=true;
+    fb.style.cssText="flex:1 1 100%;border-left:3px solid var(--ok);padding:7px 0 7px 12px;color:var(--ink-2);font-size:13.5px";
+    row.appendChild(label); row.appendChild(btns); row.appendChild(fb);
+    host.appendChild(row);
+  });
+  score();
+}
+function score(){d("#s-score").textContent=ITEMS.filter(i=>i.done).length+" of "+ITEMS.length+" sorted";}
+d("#s-reset").addEventListener("click",()=>{ITEMS.forEach(i=>i.done=false);buildSorter();});
+buildSorter();
+
+/* ===================== 4. LCG lab ===================== */
+let La=5,Lc=3,Lm=256,Ls=7,Lf=6,Lstates=[],Lperiod=0,Ltail=0;
+function runLCG(){
+  const seen=new Map(); let s=Ls%Lm; const seq=[];
+  let guard=0;
+  while(!seen.has(s)&&guard++<20000){seen.set(s,seq.length);seq.push(s);s=(La*s+Lc)%Lm;}
+  Ltail=seen.get(s); Lstates=seq; Lperiod=seq.length-Ltail;
+}
+function drawScatter(){
+  const c=d("#g-scatter"), g=c.getContext("2d");
+  const cs=getComputedStyle(document.documentElement);
+  g.clearRect(0,0,c.width,c.height);
+  g.fillStyle=cs.getPropertyValue("--sunk").trim(); g.fillRect(0,0,c.width,c.height);
+  g.strokeStyle=cs.getPropertyValue("--rule").trim(); g.lineWidth=1;
+  for(let i=1;i<4;i++){const p=i*c.width/4;
+    g.beginPath();g.moveTo(p,0);g.lineTo(p,c.height);g.moveTo(0,p);g.lineTo(c.width,p);g.stroke();}
+  g.fillStyle=cs.getPropertyValue("--machine").trim();
+  const pts=Lstates.length, r=Math.max(1.6,Math.min(4.5,180/Math.sqrt(Math.max(pts,1))));
+  for(let i=0;i<pts;i++){
+    const x=Lstates[i]/Lm, y=Lstates[(i+1)%pts]/Lm;
+    g.beginPath(); g.arc(8+x*(c.width-16),(c.height-8)-y*(c.height-16),r,0,6.284); g.fill();
+  }
+}
+function drawStream(){
+  const pre=d("#g-stream"); pre.textContent="";
+  const N=Math.min(Lstates.length+Lperiod,180);
+  let line=[], out=[];
+  for(let i=0;i<N;i++){
+    const st=Lstates[i<Lstates.length?i:Ltail+((i-Ltail)%Lperiod)];
+    const face=(st%Lf)+1;
+    line.push({v:face,repeat:i>=Lstates.length});
+    if(line.length===18||i===N-1){out.push(line);line=[];}
+  }
+  out.forEach(row=>{
+    row.forEach(cell=>{
+      const sp=document.createElement("span");
+      sp.textContent=String(cell.v).padStart(2," ")+" ";
+      if(cell.repeat){sp.style.color="var(--chance)";sp.style.fontWeight="700";}
+      pre.appendChild(sp);
+    });
+    pre.appendChild(document.createTextNode("\n"));
+  });
+}
+function updateLCG(){
+  La=Math.max(0,Math.min(4095,+d("#g-a").value||0));
+  Lc=Math.max(0,Math.min(4095,+d("#g-c").value||0));
+  Lm=+d("#g-m").value;
+  Ls=Math.max(0,Math.min(4095,+d("#g-s").value||0));
+  Lf=Math.max(3,Math.min(20,+d("#g-f").value||6));
+  runLCG();
+  const counts=new Array(Lf+1).fill(0);
+  for(let i=Ltail;i<Lstates.length;i++) counts[(Lstates[i]%Lf)+1]++;
+  let hi=1,lo=1;
+  for(let f=1;f<=Lf;f++){if(counts[f]>counts[hi])hi=f;if(counts[f]<counts[lo])lo=f;}
+  const pHi=Lperiod?counts[hi]/Lperiod:0, pLo=Lperiod?counts[lo]/Lperiod:0;
+  d("#g-period").textContent=Lperiod.toLocaleString();
+  d("#g-states").textContent=Lm.toLocaleString();
+  const full=Lperiod===Lm;
+  d("#g-full").innerHTML=full?'<span style="color:var(--ok)">yes</span>'
+    :'<span style="color:var(--chance)">no</span> <small>'+Math.round(Lperiod/Lm*100)+'% used</small>';
+  d("#g-common").innerHTML=hi+' <small>'+(pHi*100).toFixed(1)+'%</small>';
+  d("#g-rare").innerHTML=lo+' <small>'+(pLo*100).toFixed(1)+'%</small>';
+  const gap=(pHi-pLo)*100;
+  d("#g-spread").innerHTML=gap<0.05?'<span style="color:var(--ok)">even</span>'
+    :'<span style="color:var(--chance)">'+gap.toFixed(1)+'</span><small> pts</small>';
+  drawScatter(); drawStream();
+}
+["g-a","g-c","g-m","g-s","g-f"].forEach(id=>d("#"+id).addEventListener("input",updateLCG));
+document.querySelectorAll("[data-lcg]").forEach(b=>b.addEventListener("click",()=>{
+  const [a,c,m,s]=b.dataset.lcg.split(",");
+  d("#g-a").value=a; d("#g-c").value=c; d("#g-m").value=m; d("#g-s").value=s; updateLCG();
+}));
+updateLCG();
+
+/* ===================== 4b. Java mirror ===================== */
+function javaMirror(){
+  const seed=Math.max(0,Math.floor(+d("#j-seed").value||0));
+  const sides=Math.max(3,Math.min(100,Math.floor(+d("#j-sides").value||6)));
+  const n=Math.max(1,Math.min(60,Math.floor(+d("#j-n").value||12)));
+  const r=new JavaRandom(seed), vals=[];
+  for(let i=0;i<n;i++) vals.push(r.nextInt(sides)+1);
+  d("#j-code").innerHTML=
+    '<span class="ck">import</span> java.util.Random;\n\n'+
+    '<span class="ck">public class</span> <span class="cn">SeedProof</span> {\n'+
+    '    <span class="ck">public static void</span> main(String[] args) {\n'+
+    '        Random rng = <span class="ck">new</span> Random(<span class="cn">'+seed+'</span>);\n\n'+
+    '        <span class="ck">for</span> (<span class="ck">int</span> i = <span class="cn">0</span>; i &lt; <span class="cn">'+n+'</span>; i++) {\n'+
+    '            System.out.print( rng.nextInt(<span class="cn">'+sides+'</span>) + <span class="cn">1</span> + <span class="cs">" "</span> );\n'+
+    '        }\n'+
+    '    }\n'+
+    '}';
+  d("#j-out").textContent="$ java SeedProof\n"+vals.join(" ")+" ";
+}
+["j-seed","j-sides","j-n"].forEach(id=>d("#"+id).addEventListener("input",javaMirror));
+d("#j-run").addEventListener("click",javaMirror);
+javaMirror();
+
+/* ===================== 5. modulo bias ===================== */
+let bM=16,bN=6,bFix=false;
+function drawBias(){
+  const svg=d("#biaschart"); svg.textContent="";
+  const W=900,H=260,L=16,R=16,T=18,B=52, pw=W-L-R;
+  const per=Math.floor(bM/bN), left=bM%bN, keep=bN*per;
+  const cell=pw/bM, ch=Math.min(46,Math.max(18,pw/bM*0.9));
+  const ink3=getComputedStyle(document.documentElement).getPropertyValue("--ink-3").trim();
+  // row of states
+  for(let i=0;i<bM;i++){
+    const face=(i%bN)+1;
+    const dropped=bFix&&i>=keep;
+    const extra=!bFix&&i>=keep;
+    const x=L+i*cell;
+    svg.appendChild(svgEl("rect",{x:x+1,y:T,width:Math.max(2,cell-2),height:ch,rx:2,
+      fill:dropped?"var(--rule)":(extra?"var(--chance)":"var(--machine)"),
+      opacity:dropped?"1":(extra?"1":"0.55")}));
+    if(cell>17){
+      const t=svgEl("text",{x:x+cell/2,y:T+ch/2+4,"text-anchor":"middle",
+        "font-size":"11","font-family":"var(--font-mono)","font-weight":"700",
+        fill:dropped?ink3:"#fff"}); t.textContent=face; svg.appendChild(t);
+    }
+  }
+  const cap=svgEl("text",{x:L,y:T-5,fill:ink3,"font-size":"11","font-family":"var(--font-mono)"});
+  cap.textContent="THE "+bM+" STATES, EACH LABELLED WITH THE FACE IT PRODUCES";
+  svg.appendChild(cap);
+  // per-face bars
+  const counts=new Array(bN+1).fill(0);
+  const total=bFix?keep:bM;
+  for(let i=0;i<(bFix?keep:bM);i++) counts[(i%bN)+1]++;
+  const bTop=T+ch+54, bh=H-B-bTop+16;
+  const bw=pw/bN;
+  const maxC=Math.max(...counts.slice(1));
+  let hi=1,lo=1;
+  for(let f=1;f<=bN;f++){if(counts[f]>counts[hi])hi=f;if(counts[f]<counts[lo])lo=f;}
+  const cap2=svgEl("text",{x:L,y:bTop-32,fill:ink3,"font-size":"11","font-family":"var(--font-mono)"});
+  cap2.textContent="CHANCE OF EACH FACE"; svg.appendChild(cap2);
+  for(let f=1;f<=bN;f++){
+    const p=counts[f]/total, hgt=Math.max(3,(counts[f]/maxC)*bh);
+    const x=L+(f-1)*bw;
+    const even=counts[f]===counts[hi]&&counts[f]===counts[lo];
+    svg.appendChild(svgEl("rect",{x:x+bw*0.12,y:bTop+bh-hgt,width:bw*0.76,height:hgt,rx:2,
+      fill:even?"var(--machine)":(counts[f]===counts[hi]?"var(--chance)":"var(--machine)")}));
+    const t1=svgEl("text",{x:x+bw/2,y:bTop+bh-hgt-6,"text-anchor":"middle","font-size":"12",
+      "font-family":"var(--font-mono)","font-weight":"700",fill:"var(--ink)"});
+    t1.textContent=(p*100).toFixed(1)+"%"; svg.appendChild(t1);
+    const t2=svgEl("text",{x:x+bw/2,y:bTop+bh+18,"text-anchor":"middle","font-size":"12",
+      "font-family":"var(--font-mono)",fill:"var(--ink-2)"});
+    t2.textContent="face "+f; svg.appendChild(t2);
+  }
+  d("#b-per").textContent=per;
+  d("#b-left").innerHTML=bFix?'<span style="color:var(--ok)">0</span> <small>thrown out</small>':left;
+  const pHi=counts[hi]/total,pLo=counts[lo]/total;
+  d("#b-best").innerHTML=(counts[hi]===counts[lo]?"tied":hi)+' <small>'+(pHi*100).toFixed(1)+'%</small>';
+  d("#b-worst").innerHTML=(counts[hi]===counts[lo]?"tied":lo)+' <small>'+(pLo*100).toFixed(1)+'%</small>';
+  d("#b-gap").innerHTML=counts[hi]===counts[lo]
+    ?'<span style="color:var(--ok)">fair</span>'
+    :'<span style="color:var(--chance)">'+((pHi/pLo-1)*100).toFixed(0)+'%</span><small> edge</small>';
+}
+d("#b-m").addEventListener("input",e=>{bM=+e.target.value;d("#b-m-v").textContent=bM;
+  if(bN>bM)  {bN=bM;d("#b-n").value=bN;d("#b-n-v").textContent=bN;} drawBias();});
+d("#b-n").addEventListener("input",e=>{bN=Math.min(+e.target.value,bM);d("#b-n-v").textContent=bN;drawBias();});
+d("#b-fix").addEventListener("click",e=>{bFix=!bFix;e.currentTarget.setAttribute("aria-pressed",String(bFix));
+  e.currentTarget.textContent=bFix?"Show the raw bias":"Apply Java's fix"; drawBias();});
+drawBias();
+
+/* ===================== 6. build steps ===================== */
+const STEPS=[
+{n:"1",t:"One die",
+ why:"Three lines that matter. Import the class, make one generator, ask it for a number. <b>nextInt(6)</b> hands back 0 through 5, so the <b>+ 1</b> is not optional — it is the difference between a die and a blank face.",
+ code:`<span class="ck">import</span> java.util.Random;
+
+<span class="ck">public class</span> <span class="cn">Step1</span> {
+    <span class="ck">public static void</span> main(String[] args) {
+        Random rng = <span class="ck">new</span> Random();
+
+        <span class="ck">int</span> die = rng.nextInt(<span class="cn">6</span>) + <span class="cn">1</span>;
+
+        System.out.println(<span class="cs">"You rolled a "</span> + die);
+    }
+}`,
+ out:`$ java Step1
+You rolled a 4`},
+{n:"2",t:"Any die",
+ why:"Pull the roll into a <b>method</b> that takes the number of sides. One line of code now rolls a d3, a d6, or a d20. Notice the Random object moved outside — you build it once, not once per roll.",
+ code:`<span class="ck">import</span> java.util.Random;
+
+<span class="ck">public class</span> <span class="cn">Step2</span> {
+
+    <span class="ck">static</span> Random rng = <span class="ck">new</span> Random();
+
+    <span class="hl"><span class="ck">public static int</span> rollDie(<span class="ck">int</span> sides) {
+        <span class="ck">return</span> rng.nextInt(sides) + <span class="cn">1</span>;
+    }</span>
+
+    <span class="ck">public static void</span> main(String[] args) {
+        System.out.println(<span class="cs">"d6  -> "</span> + rollDie(<span class="cn">6</span>));
+        System.out.println(<span class="cs">"d20 -> "</span> + rollDie(<span class="cn">20</span>));
+        System.out.println(<span class="cs">"d3  -> "</span> + rollDie(<span class="cn">3</span>));
+    }
+}`,
+ out:`$ java Step2
+d6  -> 5
+d20 -> 7
+d3  -> 3`},
+{n:"3",t:"Many dice",
+ why:"An <b>array</b> holds the results and a <b>loop</b> fills it. This is the step where “as many dice as we want” stops being a wish. Change <b>howMany</b> to 8 and the program does not care.",
+ code:`<span class="ck">import</span> java.util.Random;
+
+<span class="ck">public class</span> <span class="cn">Step3</span> {
+
+    <span class="ck">static</span> Random rng = <span class="ck">new</span> Random();
+
+    <span class="ck">public static int</span> rollDie(<span class="ck">int</span> sides) {
+        <span class="ck">return</span> rng.nextInt(sides) + <span class="cn">1</span>;
+    }
+
+    <span class="ck">public static void</span> main(String[] args) {
+        <span class="ck">int</span> howMany = <span class="cn">5</span>;
+        <span class="ck">int</span> sides   = <span class="cn">6</span>;
+
+        <span class="hl"><span class="ck">int</span>[] dice = <span class="ck">new int</span>[howMany];
+
+        <span class="ck">for</span> (<span class="ck">int</span> i = <span class="cn">0</span>; i &lt; dice.length; i++) {
+            dice[i] = rollDie(sides);
+        }</span>
+
+        <span class="ck">for</span> (<span class="ck">int</span> i = <span class="cn">0</span>; i &lt; dice.length; i++) {
+            System.out.println(<span class="cs">"Die "</span> + (i + <span class="cn">1</span>) + <span class="cs">": "</span> + dice[i]);
+        }
+    }
+}`,
+ out:`$ java Step3
+Die 1: 4
+Die 2: 1
+Die 3: 1
+Die 4: 4
+Die 5: 3`},
+{n:"4",t:"Ask the player",
+ why:"A <b>Scanner</b> reads what the user types, and a <b>do-while</b> refuses anything too small. This is where the minimum of three sides gets enforced: a two-sided die is a coin, and the program says so instead of shrugging.",
+ code:`<span class="ck">import</span> java.util.Random;
+<span class="ck">import</span> java.util.Scanner;
+
+<span class="ck">public class</span> <span class="cn">Step4</span> {
+
+    <span class="ck">static</span> Random  rng   = <span class="ck">new</span> Random();
+    <span class="ck">static</span> Scanner input = <span class="ck">new</span> Scanner(System.in);
+
+    <span class="ck">public static int</span> rollDie(<span class="ck">int</span> sides) {
+        <span class="ck">return</span> rng.nextInt(sides) + <span class="cn">1</span>;
+    }
+
+    <span class="hl"><span class="ck">public static int</span> askFor(String label, <span class="ck">int</span> min) {
+        <span class="ck">int</span> value;
+        <span class="ck">do</span> {
+            System.out.print(label + <span class="cs">" ("</span> + min + <span class="cs">" or more): "</span>);
+            value = input.nextInt();
+            <span class="ck">if</span> (value &lt; min) {
+                System.out.println(<span class="cs">"  That is below "</span> + min + <span class="cs">". Try again."</span>);
+            }
+        } <span class="ck">while</span> (value &lt; min);
+        <span class="ck">return</span> value;
+    }</span>
+
+    <span class="ck">public static void</span> main(String[] args) {
+        <span class="ck">int</span> howMany = askFor(<span class="cs">"How many dice"</span>, <span class="cn">1</span>);
+        <span class="ck">int</span> sides   = askFor(<span class="cs">"How many sides"</span>, <span class="cn">3</span>);
+
+        System.out.println();
+        System.out.println(<span class="cs">"Rolling "</span> + howMany + <span class="cs">"d"</span> + sides + <span class="cs">" ..."</span>);
+
+        <span class="ck">for</span> (<span class="ck">int</span> i = <span class="cn">0</span>; i &lt; howMany; i++) {
+            System.out.println(<span class="cs">"Die "</span> + (i + <span class="cn">1</span>) + <span class="cs">": "</span> + rollDie(sides));
+        }
+    }
+}`,
+ out:`$ java Step4
+How many dice (1 or more): 4
+How many sides (3 or more): 2
+  That is below 3. Try again.
+How many sides (3 or more): 6
+
+Rolling 4d6 ...
+Die 1: 3
+Die 2: 1
+Die 3: 6
+Die 4: 3`},
+{n:"5",t:"The engine",
+ why:"Totals, highest, lowest, and a loop that keeps the table going until the player quits. Everything here is one <b>for</b> loop over the array you already built — no new ideas, just the payoff.",
+ code:`<span class="ck">import</span> java.util.Random;
+<span class="ck">import</span> java.util.Scanner;
+
+<span class="ck">public class</span> <span class="cn">DiceRoller</span> {
+
+    <span class="ck">static</span> Random  rng   = <span class="ck">new</span> Random();
+    <span class="ck">static</span> Scanner input = <span class="ck">new</span> Scanner(System.in);
+
+    <span class="cp">/** One roll of one die. Returns 1 through sides. */</span>
+    <span class="ck">public static int</span> rollDie(<span class="ck">int</span> sides) {
+        <span class="ck">return</span> rng.nextInt(sides) + <span class="cn">1</span>;
+    }
+
+    <span class="cp">/** Keeps asking until the user types a number that is min or larger. */</span>
+    <span class="ck">public static int</span> askFor(String label, <span class="ck">int</span> min) {
+        <span class="ck">int</span> value;
+        <span class="ck">do</span> {
+            System.out.print(label + <span class="cs">" ("</span> + min + <span class="cs">" or more): "</span>);
+            value = input.nextInt();
+            <span class="ck">if</span> (value &lt; min) {
+                System.out.println(<span class="cs">"  "</span> + value + <span class="cs">" is below "</span> + min + <span class="cs">". Try again."</span>);
+            }
+        } <span class="ck">while</span> (value &lt; min);
+        <span class="ck">return</span> value;
+    }
+
+    <span class="ck">public static void</span> main(String[] args) {
+        System.out.println(<span class="cs">"=== BOMBER WORKS DICE ENGINE ==="</span>);
+
+        <span class="ck">boolean</span> rolling = <span class="ck">true</span>;
+
+        <span class="ck">while</span> (rolling) {
+            <span class="ck">int</span> howMany = askFor(<span class="cs">"How many dice"</span>, <span class="cn">1</span>);
+            <span class="ck">int</span> sides   = askFor(<span class="cs">"How many sides"</span>, <span class="cn">3</span>);
+
+            <span class="ck">int</span>[] dice = <span class="ck">new int</span>[howMany];
+            <span class="ck">for</span> (<span class="ck">int</span> i = <span class="cn">0</span>; i &lt; dice.length; i++) {
+                dice[i] = rollDie(sides);
+            }
+
+            <span class="hl"><span class="ck">int</span> total   = <span class="cn">0</span>;
+            <span class="ck">int</span> highest = dice[<span class="cn">0</span>];
+            <span class="ck">int</span> lowest  = dice[<span class="cn">0</span>];
+
+            <span class="ck">for</span> (<span class="ck">int</span> i = <span class="cn">0</span>; i &lt; dice.length; i++) {
+                total += dice[i];
+                <span class="ck">if</span> (dice[i] &gt; highest) highest = dice[i];
+                <span class="ck">if</span> (dice[i] &lt; lowest)  lowest  = dice[i];
+            }</span>
+
+            System.out.println();
+            System.out.println(<span class="cs">"Rolling "</span> + howMany + <span class="cs">"d"</span> + sides + <span class="cs">" ..."</span>);
+            <span class="ck">for</span> (<span class="ck">int</span> i = <span class="cn">0</span>; i &lt; dice.length; i++) {
+                System.out.println(<span class="cs">"  Die "</span> + (i + <span class="cn">1</span>) + <span class="cs">": "</span> + dice[i]);
+            }
+            System.out.println(<span class="cs">"  ----------"</span>);
+            System.out.println(<span class="cs">"  Total:   "</span> + total);
+            System.out.println(<span class="cs">"  Highest: "</span> + highest);
+            System.out.println(<span class="cs">"  Lowest:  "</span> + lowest);
+            System.out.println();
+
+            System.out.print(<span class="cs">"Roll again? (y/n): "</span>);
+            String answer = input.next();
+            rolling = answer.equalsIgnoreCase(<span class="cs">"y"</span>);
+            System.out.println();
+        }
+
+        System.out.println(<span class="cs">"Dice engine offline."</span>);
+    }
+}`,
+ out:`$ java DiceRoller
+=== BOMBER WORKS DICE ENGINE ===
+How many dice (1 or more): 5
+How many sides (3 or more): 6
+
+Rolling 5d6 ...
+  Die 1: 5
+  Die 2: 5
+  Die 3: 2
+  Die 4: 1
+  Die 5: 4
+  ----------
+  Total:   17
+  Highest: 5
+  Lowest:  1
+
+Roll again? (y/n): y
+
+How many dice (1 or more): 3
+How many sides (3 or more): 20
+
+Rolling 3d20 ...
+  Die 1: 18
+  Die 2: 20
+  Die 3: 11
+  ----------
+  Total:   49
+  Highest: 20
+  Lowest:  11
+
+Roll again? (y/n): n
+
+Dice engine offline.`}
+];
+let curStep=0;
+function paintSteps(){
+  const tabs=d("#steptabs"); tabs.textContent="";
+  STEPS.forEach((s,i)=>{
+    const b=document.createElement("button");
+    b.type="button"; b.className="btn sm"; b.setAttribute("aria-pressed",String(i===curStep));
+    b.innerHTML="<b>"+s.n+"</b> &nbsp;"+s.t;
+    b.addEventListener("click",()=>{curStep=i;paintSteps();});
+    tabs.appendChild(b);
+  });
+  const s=STEPS[curStep], host=d("#stepbody"); host.textContent="";
+  const p=document.createElement("div"); p.className="panel";
+  p.innerHTML=
+    '<div class="plabel">Step '+s.n+' of 5 &mdash; '+s.t+'</div>'+
+    '<p style="color:var(--ink-2);font-size:15px;max-width:70ch">'+s.why+'</p>'+
+    '<div class="codewrap"><button class="copy" type="button" data-copy="#stepcode">Copy</button>'+
+    '<pre id="stepcode">'+s.code+'</pre></div>'+
+    '<div class="plabel" style="margin:20px 0 0">What the console shows</div>'+
+    '<div class="codewrap"><pre class="console">'+s.out.replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</pre></div>'+
+    '<p class="small" style="margin-top:10px">Your numbers will be different. That is the whole idea.</p>';
+  host.appendChild(p);
+}
+paintSteps();
+
+/* ===================== 7. quiz ===================== */
+const QUIZ=[
+ ["Your program prints a 0 sometimes and never prints a 6. What did you write, and what should it say?",
+  "You wrote <b>rng.nextInt(6)</b> and forgot the <b>+ 1</b>. nextInt(6) returns 0 through 5. The fix is <b>rng.nextInt(6) + 1</b>."],
+ ["Two dice can total anything from 2 to 12. Why is a 7 not a 1-in-11 shot?",
+  "Because the eleven totals are not equally likely. The equally likely outcomes are the 36 pairs of (die A, die B). Six of those pairs total 7 and only one totals 12, so a 7 is 6/36 = 16.7% and a 12 is 1/36 = 2.8%."],
+ ["Someone runs your program twice and gets identical rolls both times. What did they do?",
+  "They passed a fixed seed — <b>new Random(42)</b> — or rebuilt the Random with the same seed inside the loop. Same seed means the same formula starting from the same state, which means the same numbers, every time, on every machine."],
+ ["Is a rolling die truly random? Answer carefully.",
+  "No. It is deterministic — Newton's laws settle the face the instant it leaves your hand — but chaotic, meaning the result depends so sensitively on the throw that nobody can measure finely enough to predict it. Truly random means no cause exists at all, like the decay of a single radioactive atom."],
+ ["Your teammate says the AI wrote something nobody has ever written, so it must be truly random. Fix him.",
+  "The model computes a probability for every possible next word using fixed arithmetic, then a sampler picks one using a pseudorandom generator seeded from the clock. Fix the seed, set temperature to zero, and it writes the identical text every time. New is not the same thing as random."],
+ ["Why call nextInt(6) instead of writing your own mod 6?",
+  "Because 6 does not divide evenly into the generator's range, so a raw mod hands extra states to the low faces — modulo bias. nextInt spots the values in the uneven tail, throws them away, and draws again, which costs a rare extra draw and buys a fair die."]
+];
+(function(){
+  const host=d("#quiz"); host.textContent="";
+  QUIZ.forEach(([q,a])=>{
+    const det=document.createElement("details");
+    const sum=document.createElement("summary"); sum.textContent=q;
+    const bod=document.createElement("div"); bod.className="dbody"; bod.innerHTML=a;
+    det.appendChild(sum); det.appendChild(bod); host.appendChild(det);
+  });
+})();
+</script>
+
+</body>
+</html>
